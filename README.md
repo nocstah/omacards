@@ -124,6 +124,17 @@ omarchy plugin disable io.github.nocstah.omacards
 omarchy plugin enable io.github.nocstah.omacards
 ```
 
+To remove the panel entirely:
+
+```sh
+omarchy plugin remove io.github.nocstah.omacards
+```
+
+Removal disables OmaCards and removes its installed checkout. Your apps, saved
+cards, motion preferences, keyboard shortcuts and separately installed Hyprflip
+components remain available. The shared shortcuts fall back to Hyprflip's native
+menus once OmaCards is unavailable.
+
 Replacement bars and older Omarchy shell APIs have not been validated. No
 compositor restart is needed for this QML interface.
 
