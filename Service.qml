@@ -79,7 +79,7 @@ Scope {
                 const allowed = anchor === null || (target && target.faces.some(f => f.panes.some(p => p.address === anchor))) || (operation && anchor === operation.context.anchor)
                 if (!allowed) return
             }
-            page = pendingPage === "motion" ? "motion" : pendingPage === "edit" && currentCard && currentCard.kind === "container" ? "edit" : "cards"
+            page = ["settings", "motion", "shortcuts"].indexOf(pendingPage) >= 0 ? pendingPage : pendingPage === "edit" && currentCard && currentCard.kind === "container" ? "edit" : "cards"
             widget.reveal()
         }
     }
@@ -93,7 +93,7 @@ Scope {
         notice = ""
         question = null
         opening = null
-        returnToPanel = ["edit", "manage", "transition", "duration", "preview"].indexOf(action) >= 0
+        returnToPanel = ["edit", "manage", "transition", "duration", "preview", "shortcut", "floating"].indexOf(action) >= 0
         operationProcess.command = ["python3", backend, "run", "--request", JSON.stringify(request)]
         operationProcess.running = true
     }
@@ -221,7 +221,7 @@ Scope {
         function close(): void { root.dismiss() }
         function open(page: string): string {
             if (!root.shell) return "unavailable"
-            root.requestedPage = ["cards", "library", "edit", "motion"].indexOf(page) >= 0 ? page : "cards"
+            root.requestedPage = ["cards", "library", "edit", "settings", "motion", "shortcuts"].indexOf(page) >= 0 ? page : "cards"
             return root.shell.summon(root.pluginId, "") ? "ok" : "unavailable"
         }
     }

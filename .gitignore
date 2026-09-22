@@ -2,3 +2,4 @@ __pycache__/
 *.pyc
 tests/*-result.log
 .impeccable/review/
+tests/shortcut-native.log

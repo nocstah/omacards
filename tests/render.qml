@@ -9,7 +9,12 @@ ShellRoot {
     id: harness
     property int step: 0
     property var original: null
-    property var shots: ["cards", "edit", "motion", "question", "empty", "narrow", "scaled", "light", "dark", "pane-edit", "library-ungrouped", "no-front", "unselected-card", "long-front", "scaled-entry"]
+    property var shots: ["cards", "settings", "shortcuts", "shortcut-record", "shortcut-conflict", "settings-narrow", "settings-scaled", "edit", "motion", "question", "empty", "narrow", "scaled", "light", "dark", "pane-edit", "library-ungrouped", "no-front", "unselected-card", "long-front", "scaled-entry"]
+    function findItem(item, name) {
+        if (item.objectName === name) return item
+        for (const child of item.children || []) { const found = findItem(child, name); if (found) return found }
+        return null
+    }
     Cards.Service { id: service }
     FileView {
         path: Quickshell.env("OMACARDS_FIXTURE")
@@ -48,10 +53,22 @@ ShellRoot {
                 if (harness.step === harness.shots.length) { console.log("OMACARDS_UI_CAPTURE_OK"); Qt.quit(); return }
                 const next = harness.shots[harness.step]
                 service.question = null
-                service.page = next === "edit" || next === "motion" ? next : "cards"
+                service.page = ["settings","shortcuts","edit","motion"].indexOf(next) >= 0 ? next : "cards"
                 service.snapshot = JSON.parse(JSON.stringify(harness.original))
                 service.context = service.snapshot.context
                 service.selectedKey = "container:1"
+                if (["shortcut-record", "shortcut-conflict", "settings-narrow", "settings-scaled"].includes(next)) {
+                    service.page = "shortcuts"
+                    const editor = harness.findItem(content, "shortcutSettings")
+                    editor.choose(service.snapshot.shortcuts.rows[0])
+                    editor.candidateMask = 76
+                    editor.candidateKey = "C"
+                    editor.error = next === "shortcut-conflict" ? editor.conflict(76,"C") : ""
+                    editor.recording = next !== "shortcut-conflict"
+                    if (next === "settings-narrow") { window.width = 340; window.height = 550 }
+                    if (next === "settings-scaled") { window.width = 700; window.height = 900; Style.spacingScale = 2; Style.fontBaseSize = 18 }
+                }
+                if (next === "edit") {window.width=468;window.height=700;Style.spacingScale=1;Style.fontBaseSize=12}
                 if (next === "question") service.question = {id: 1, mode: "select", prompt: "Choose an app for the back · Gmail stays on the front", choices: [{value: "a", label: "WhatsApp", detail: "Workspace 2"}, {value: "b", label: "Telegram", detail: "Workspace 2"}, {value: "w", label: "Add from workspace 5", detail: "Move an app here"}]}
                 if (next === "empty") { const data = JSON.parse(JSON.stringify(harness.original)); data.cards = []; data.saved = []; service.snapshot = data }
                 if (next === "narrow") { window.width = 340; window.height = 550 }

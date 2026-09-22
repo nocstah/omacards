@@ -17,10 +17,11 @@ Omarchy theme and font.
   beside/stacked layouts. Removed apps remain open.
 - **Saved arrangements:** rename, duplicate, delete, deliberately update the
   saved layout, or reopen missing apps through the same Hyprflip workflows.
+- **Settings:** motion and editable keyboard shortcuts with conflict checks and per-action defaults.
 - **Motion:** seven transitions, individual previews, speed presets and exact
   duration. Dissolve and Portal are experimental. Settings apply to all cards.
 - **Keyboard:** search with arrows and Enter, Tab through controls, Escape to
-  go back or cancel. Existing F/O/Space shortcuts continue working.
+  go back or cancel. The footer shows the current Edit and Saved-card shortcuts.
 
 OmaCards runs in Omarchy's shell. It does not replace the compositor plugin,
 maintain a second card database, or start a background Python daemon.
@@ -72,7 +73,9 @@ You can also open it from a terminal:
 omarchy-shell omacards open cards
 omarchy-shell omacards open edit
 omarchy-shell omacards open library
+omarchy-shell omacards open settings
 omarchy-shell omacards open motion
+omarchy-shell omacards open shortcuts
 ```
 
 ## Use and recovery
@@ -131,3 +134,24 @@ test output, and tests popup focus, flip/unfold, structured save/edit, motion
 and direct saved-card activation. Rendering uses synthetic fixture data.
 
 MIT licensed. Built on Hyprflip and Omarchy's native shell components.
+
+## Floating cards, shortcuts and destinations
+
+**Float card** turns the whole arrangement into one movable, resizable card.
+Drag or resize any visible app with your normal desktop mouse shortcuts.
+**Tile card** returns it to the layout. Guided creation keeps a floating front
+app floating and fits the selected back apps into its frame.
+
+Choose **Settings → Keyboard shortcuts**, select an action, then Record shortcut.
+Press a combination containing Super, Ctrl or Alt and choose Save shortcut.
+Conflicts identify the existing action; they are never silently replaced.
+Use default restores one action's default. Recording temporarily inhibits normal
+desktop shortcuts, then releases them on completion or closing the panel.
+Bindings and motion preferences survive configuration reloads and restarts.
+
+Under a saved card, choose **Manage → Workspace… → Always use a workspace…**.
+Enter `3` to make Comms always open on workspace 3. If that card is already open,
+opening it moves it to 3. Current workspace removes the fixed destination.
+No second card database is created; updating a saved arrangement preserves its
+destination. Saved floating mode is restored, while exact screen coordinates
+are chosen by the current desktop layout.

@@ -20,6 +20,8 @@ FocusScope {
     property int cursor: 0
     property int choiceCursor: 0
     property bool advanced: false
+    readonly property bool recordingShortcut: shortcutSettings.recording
+    function stopRecording() { shortcutSettings.recording = false }
     readonly property var savedRows: (snapshotData.saved || []).filter(row => (row.name + " " + row.description).toLowerCase().includes(filter.toLowerCase()))
     readonly property bool hasSavedCards: (snapshotData.saved || []).length > 0
     readonly property bool hasFrontApp: !!(service && service.context && service.context.anchor)
@@ -35,6 +37,7 @@ FocusScope {
     }
     function back() {
         if (question) service.cancel()
+        else if (page === "motion" || page === "shortcuts") { service.page = "settings"; focusEntry() }
         else if (page !== "cards") { service.page = "cards"; paneAddress = ""; focusEntry() }
         else closeRequested()
     }
@@ -84,13 +87,13 @@ FocusScope {
             RowLayout {
                 Layout.fillWidth: true
                 Label {
-                    text: root.question ? "Choose for your card" : (root.page === "motion" ? "Motion for all cards" : root.page === "edit" ? "Edit card" : "Cards")
+                    text: root.question ? "Choose for your card" : (root.page === "settings" ? "Settings" : root.page === "shortcuts" ? "Keyboard shortcuts" : root.page === "motion" ? "Motion" : root.page === "edit" ? "Edit card" : "Cards")
                     font.pixelSize: Style.font.heading
                     font.bold: true
                     Layout.fillWidth: true
                 }
                 Action { text: "Back"; visible: !root.busy && root.page !== "cards"; onClicked: root.back() }
-                Action { text: "Motion"; visible: !root.busy && !root.question && root.page === "cards" && root.snapshotData.available; onClicked: root.service.page = "motion" }
+                Action { text: "Settings"; visible: !root.busy && !root.question && root.page === "cards" && root.snapshotData.available; onClicked: root.service.page = "settings" }
                 Action { text: "Close"; onClicked: root.closeRequested() }
             }
             Label {
@@ -113,10 +116,10 @@ FocusScope {
                     id: nameInput
                     Layout.fillWidth: true
                     visible: root.question !== null && root.question.mode === "input"
-                    placeholderText: "Card name"
+                    placeholderText: root.question ? root.question.prompt : ""
                     maximumLength: 64
                     onAccepted: if (text.trim()) root.service.reply(text.trim())
-                    Accessible.name: "Card name"
+                    Accessible.name: root.question ? root.question.prompt : "Card name"
                 }
                 FocusScope {
                     id: choices
@@ -185,7 +188,7 @@ FocusScope {
                     Layout.fillWidth: true
                     spacing: Style.space(8)
                     Label { text: root.card ? root.card.name : ""; Layout.fillWidth: true; font.bold: true; font.pixelSize: Style.font.title }
-                    Label { text: root.card ? "Workspace " + root.card.workspace_label + (root.card.unfolded ? " · Both sides visible" : "") : ""; font.pixelSize: Style.font.bodySmall }
+                    Label { text: root.card ? "Workspace " + root.card.workspace_label + (root.card.unfolded ? " · Both sides visible" : "") + (root.card.floating ? " · Floating" : "") : ""; font.pixelSize: Style.font.bodySmall }
                     Repeater {
                         model: root.card ? root.card.faces : []
                         RowLayout {
@@ -201,6 +204,7 @@ FocusScope {
                         spacing: Style.space(6)
                         Action { text: "Flip"; enabled: root.card && !root.card.unfolded; onClicked: root.service.cardAction("flip") }
                         Action { text: root.card && root.card.unfolded ? "Fold" : "Unfold"; visible: root.card && root.card.kind === "container"; onClicked: root.service.cardAction("unfold") }
+                        Action { text: root.card && root.card.floating ? "Tile card" : "Float card"; visible: !!root.snapshotData.capabilities.floating; onClicked: root.service.cardAction("floating") }
                         Action { text: "Edit"; visible: root.card && root.card.kind === "container"; onClicked: root.service.page = "edit" }
                         Action { text: "Save…"; visible: root.card && root.card.kind === "container"; onClicked: root.edit("save", root.card.active, null) }
                     }
@@ -287,10 +291,38 @@ FocusScope {
                 }
                 Ui.PanelSeparator { Layout.fillWidth: true }
                 Label {
-                    text: "Edit card: Super+Ctrl+Alt+C\nSaved cards: Super+Ctrl+Alt+L"
+                    text: (root.snapshotData.shortcuts ? root.snapshotData.shortcuts.rows : []).filter(r => r.id === "edit" || r.id === "library").map(r => r.label + ": " + r.shortcut).join("\n")
+                    visible: text.length > 0
                     Layout.fillWidth: true
                     font.pixelSize: Style.font.bodySmall
                 }
+            }
+
+            ColumnLayout {
+                visible: !root.busy && !root.question && root.page === "settings"
+                Layout.fillWidth: true
+                spacing: Style.space(8)
+                Label { text: "Preferences apply to all cards and are kept after a restart."; Layout.fillWidth: true }
+                ChoiceRow {
+                    Layout.fillWidth: true
+                    title: "Motion"
+                    detail: "Transition, speed and preview · Instant turns off motion"
+                    onActivated: root.service.page = "motion"
+                }
+                ChoiceRow {
+                    Layout.fillWidth: true
+                    title: "Keyboard shortcuts"
+                    detail: "Change a shortcut or restore its default"
+                    onActivated: root.service.page = "shortcuts"
+                }
+            }
+            ShortcutsContent {
+                id: shortcutSettings
+                objectName: "shortcutSettings"
+                visible: !root.busy && !root.question && root.page === "shortcuts"
+                Layout.fillWidth: true
+                service: root.service
+                onRevealEditor: item => root.showItem(item)
             }
 
             ColumnLayout {
