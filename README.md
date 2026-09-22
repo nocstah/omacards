@@ -16,7 +16,10 @@ Omarchy theme and font.
   or remove any pane, move it across sides, reorder panes, and switch between
   beside/stacked layouts. Removed apps remain open.
 - **Saved arrangements:** rename, duplicate, delete, deliberately update the
-  saved layout, or reopen missing apps through the same Hyprflip workflows.
+  saved layout, choose a destination workspace, or reopen missing apps through
+  the same Hyprflip workflows.
+- **Floating cards:** float or tile the whole arrangement, then move and resize
+  all of its apps together.
 - **Settings:** motion and editable keyboard shortcuts with conflict checks and per-action defaults.
 - **Motion:** seven transitions, individual previews, speed presets and exact
   duration. Dissolve and Portal are experimental. Settings apply to all cards.
@@ -29,7 +32,7 @@ maintain a second card database, or start a background Python daemon.
 ## Requirements
 
 - Omarchy 4's stock Quickshell bar; tested with 4.0.4.
-- Current Hyprflip plus its JSON helper (protocol 1), Python 3 and GLib.
+- Hyprflip 0.2.0 plus its JSON helper (protocol 1), Python 3 and GLib.
 - For multi-app and saved cards: the matching Hyprflip hy3 provider, up to three
   apps per face. A basic native pair still supports Flip and Motion.
 
@@ -49,18 +52,27 @@ This installs the helper and persistent motion preferences without rebinding
 container shortcuts. The installer backs up replaced files and checks that
 existing cards survive the configuration reload.
 
-## Install this checkout
+## Install
 
-Until the companion repository is published, install your local checkout:
+After installing the Hyprflip helper above:
 
 ```sh
-omarchy plugin add /absolute/path/to/omacards --enable --yes
+omarchy plugin add https://github.com/nocstah/omacards.git --enable --yes
 ```
 
-The directory must be a Git checkout with `manifest.json` at its root. The
-Omarchy installer clones it to
+`--yes` accepts Omarchy's plugin-installation prompt. The installer clones the repository to
 `~/.config/omarchy/plugins/io.github.nocstah.omacards/` and adds the bar icon.
 Click the cards icon to open the panel.
+
+To update:
+
+```sh
+omarchy plugin update io.github.nocstah.omacards
+```
+
+Update Hyprflip and its helper first when a release requires a new backend.
+If an update leaves old controls visible, close the panel and run
+`omarchy restart shell` on an unlocked desktop to clear its cached QML.
 
 With the updated helper, **Super+Ctrl+Alt+C** opens Edit and
 **Super+Ctrl+Alt+L** opens the library. If OmaCards is disabled or unavailable,
@@ -119,6 +131,10 @@ compositor restart is needed for this QML interface.
 
 See [the protocol](https://github.com/nocstah/hyprflip/blob/main/docs/PANEL_API.md).
 The workflow backend belongs to Hyprflip; do not copy it into this project.
+
+For local development, clone this repository and pass its absolute path to
+`omarchy plugin add /absolute/path/to/omacards --enable --yes`. It must be a Git
+checkout with `manifest.json` at the root. Run development checks from that checkout.
 
 ```sh
 omarchy plugin validate .
