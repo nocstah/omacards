@@ -4,7 +4,7 @@
   "name": "OmaCards",
   "version": "0.1.0",
   "author": "nocstah",
-  "description": "Open, edit and flip your Hyprflip cards from the Omarchy bar.",
+  "description": "Group related apps into reusable, two-sided cards that flip in the same desktop space. Put an editor and terminal on the front and a browser preview on the back, or email opposite WhatsApp and Telegram. Create and edit cards from the bar, save layouts, reopen apps, and assign cards to workspaces. Supports up to three apps per side, floating cards that move together, unfold, animation settings and custom shortcuts. Requires a separate Hyprflip installation.",
   "kinds": ["service", "bar-widget"],
   "entryPoints": {"service": "Service.qml", "barWidget": "BarWidget.qml"},
   "barWidget": {

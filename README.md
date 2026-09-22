@@ -1,12 +1,55 @@
 # OmaCards
 
-A compact Omarchy bar panel for [Hyprflip](https://github.com/nocstah/hyprflip).
-Open a saved card, see its two sides, edit any app, and tune the turn.
+**Keep a project or a workflow together in one two-sided card.** OmaCards is
+the Omarchy bar panel for [Hyprflip](https://github.com/nocstah/hyprflip): create
+cards, edit their apps, save arrangements and bring them back on a chosen workspace.
+
+A card has a **Front** and a **Back**, with up to three real app windows on
+each side. Flip it to reveal the other side in the same desktop space. Your
+apps stay running, and the card remembers which app you were using on each side.
+Temporarily **Unfold** it when you need to see both sides at once, then fold
+it back when you are done.
+
+## What could you use it for?
+
+| Card | Front | Back | Where it opens |
+| --- | --- | --- | --- |
+| Project | Editor and terminal | Browser preview | Workspace 2 |
+| Comms | Gmail | WhatsApp and Telegram | Workspace 3 |
+| Research | Document reader | Notes and a browser | Your current workspace |
+
+These are examples, not presets or required apps. Build a card from the windows
+you already use. Give each project its own saved arrangement and workspace, or
+keep a floating communications card that you can move and resize as one unit.
+
+![Hyprflip demonstrating a two-sided card](https://raw.githubusercontent.com/nocstah/hyprflip/f4051aa5970dc816875839968b2629e462cb0a46/media/hyprflip-preview.gif)
+
+[Watch the full desktop demo](https://github.com/nocstah/hyprflip/blob/f4051aa5970dc816875839968b2629e462cb0a46/media/hyprflip-demo.mp4).
+The animation is provided by Hyprflip; OmaCards adds the native bar controls below.
 
 ![OmaCards editor with sample app names](media/editor.png)
 
 The screenshot uses synthetic example content. OmaCards follows your current
 Omarchy theme and font.
+
+## Your first card
+
+After [installing the backend and panel](#requirements):
+
+1. Open the apps you want to use, then focus the app for the front, such as Gmail.
+2. Click the OmaCards icon in the bar, choose **Create a new card**, then
+   **Choose app for back…** and select WhatsApp. The apps are grouped automatically.
+3. Open **Edit** to add Telegram to the back. Apps can come from this workspace
+   or another one; you can arrange them beside each other or stack them vertically.
+4. Save the arrangement as **Comms**. Under **Manage → Workspace… → Always use
+   a workspace…**, choose `3` if that is where you want it to open every time.
+5. Next time, select **Comms** from the saved-card library. OmaCards goes to the
+   existing card or uses Hyprflip to restore the arrangement and launch missing
+   apps that have a supported launcher.
+
+Saved cards remember their app assignments, pane layouts, floating mode and
+workspace destination. They do not back up application data or unsaved documents;
+each app controls its own documents, browser tabs and login state.
 
 ## What it does
 
