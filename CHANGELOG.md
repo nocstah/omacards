@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Pin the executable Hyprflip dependency to `f4051aa5970dc816875839968b2629e462cb0a46`.
+  Installation verifies a clean checkout at that exact revision before running
+  the shared helper installer; dependency documentation uses immutable links.
+
 ## 0.1.0 — 2026-09-22
 
 First public release, tested with Omarchy 4.0.4 and Hyprflip 0.2.0 on Hyprland 0.56.2.

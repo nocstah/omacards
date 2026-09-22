@@ -32,25 +32,53 @@ maintain a second card database, or start a background Python daemon.
 ## Requirements
 
 - Omarchy 4's stock Quickshell bar; tested with 4.0.4.
-- Hyprflip 0.2.0 plus its JSON helper (protocol 1), Python 3 and GLib.
+- Hyprflip 0.2.0 at **`f4051aa5970dc816875839968b2629e462cb0a46`**,
+  including its JSON helper (protocol 1), Python 3 and GLib.
 - For multi-app and saved cards: the matching Hyprflip hy3 provider, up to three
   apps per face. A basic native pair still supports Flip and Motion.
 
-Follow [Hyprflip installation](https://github.com/nocstah/hyprflip/blob/main/docs/INSTALL.md)
-for the compositor components. Installing OmaCards never builds, replaces or
-unloads them.
+### Install the pinned Hyprflip dependency
 
-From your current Hyprflip checkout, install the shared helper:
+This OmaCards release is bound to Hyprflip commit
+[`f4051aa5970dc816875839968b2629e462cb0a46`](https://github.com/nocstah/hyprflip/tree/f4051aa5970dc816875839968b2629e462cb0a46).
+Use this exact revision for both the compositor components and the helper that
+OmaCards executes. The optional hy3 provider is itself pinned by that revision to
+`42b7ed8fd9aefd3f36e5f617afd5071245c67853`.
+
+Create a separate checkout and verify its revision:
 
 ```sh
-python3 scripts/install-setup.py --dry-run
-python3 scripts/install-setup.py
+git clone --no-checkout https://github.com/nocstah/hyprflip.git hyprflip-omacards &&
+git -C hyprflip-omacards checkout --detach f4051aa5970dc816875839968b2629e462cb0a46 &&
+test "$(git -C hyprflip-omacards rev-parse HEAD)" = f4051aa5970dc816875839968b2629e462cb0a46
 ```
 
-For native pairs without containers, use `--backend-only` on both commands.
+Build and install the compositor components **from `hyprflip-omacards`**, following
+[the installation guide at that same commit](https://github.com/nocstah/hyprflip/blob/f4051aa5970dc816875839968b2629e462cb0a46/docs/INSTALL.md).
+Use its supplied installer and, for multi-app cards, its matching provider
+procedure. The separate checkout above replaces the guide's clone step; keep it
+at the pinned revision instead of using its `git pull` or hyprpm update paths.
+Installing OmaCards itself never builds, replaces or unloads compositor libraries.
+
+From the directory containing `hyprflip-omacards`, install that exact helper.
+These checks stop before installation if the checkout has changed:
+
+```sh
+(
+  set -eu
+  cd hyprflip-omacards
+  test "$(git rev-parse HEAD)" = f4051aa5970dc816875839968b2629e462cb0a46
+  test -z "$(git status --porcelain --untracked-files=all)"
+  python3 scripts/install-setup.py --dry-run
+  python3 scripts/install-setup.py
+)
+```
+
+For native pairs without containers, add `--backend-only` to both Python commands.
 This installs the helper and persistent motion preferences without rebinding
 container shortcuts. The installer backs up replaced files and checks that
-existing cards survive the configuration reload.
+existing cards survive the configuration reload. The installed entry point is
+`~/.local/lib/hyprflip/control.py`; it comes from this verified checkout.
 
 ## Install
 
@@ -70,7 +98,8 @@ To update:
 omarchy plugin update io.github.nocstah.omacards
 ```
 
-Update Hyprflip and its helper first when a release requires a new backend.
+Dependency updates are explicit: when a newer OmaCards release changes the
+Hyprflip pin, install its documented immutable revision before updating the panel.
 If an update leaves old controls visible, close the panel and run
 `omarchy restart shell` on an unlocked desktop to clear its cached QML.
 
@@ -140,7 +169,7 @@ compositor restart is needed for this QML interface.
 
 ## Development and checks
 
-See [the protocol](https://github.com/nocstah/hyprflip/blob/main/docs/PANEL_API.md).
+See [the protocol](https://github.com/nocstah/hyprflip/blob/f4051aa5970dc816875839968b2629e462cb0a46/docs/PANEL_API.md).
 The workflow backend belongs to Hyprflip; do not copy it into this project.
 
 For local development, clone this repository and pass its absolute path to
