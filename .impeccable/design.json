@@ -1,0 +1,297 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-22T02:51:14Z",
+  "title": "Design System: OmaCards",
+  "extensions": {
+    "typographyMeta": {
+      "headline": {
+        "displayName": "Panel heading",
+        "purpose": "Main view heading.",
+        "nativeSize": "Style.font.heading"
+      },
+      "title": {
+        "displayName": "Card title",
+        "purpose": "Current card name in Cards.",
+        "nativeSize": "Style.font.title"
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Actions, row titles, face names, and explanatory text.",
+        "nativeSize": "Style.font.body"
+      },
+      "label": {
+        "displayName": "Supporting label",
+        "purpose": "Workspace context, row details, and consequence text.",
+        "nativeSize": "Style.font.bodySmall"
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "host-popup-opacity",
+        "value": "140 ms; Easing.OutCubic",
+        "purpose": "Inherited popup appearance and dismissal.",
+        "source": "/usr/share/omarchy/shell/Ui/KeyboardPanel.qml"
+      },
+      {
+        "name": "host-button-fill",
+        "value": "120 ms; QML ColorAnimation default easing",
+        "purpose": "Inherited button state fill.",
+        "source": "/usr/share/omarchy/shell/Ui/Button.qml"
+      },
+      {
+        "name": "host-row-fill",
+        "value": "60 ms; QML ColorAnimation default easing",
+        "purpose": "Inherited choice-row state fill.",
+        "source": "/usr/share/omarchy/shell/Ui/CursorSurface.qml"
+      }
+    ],
+    "breakpoints": [],
+    "nativeQml": {
+      "authority": "Installed Omarchy 4 shell: qs.Commons and qs.Ui. Runtime bindings remain authoritative over any resolved fixture values.",
+      "sourceFiles": [
+        "/usr/share/omarchy/shell/Commons/Color.qml",
+        "/usr/share/omarchy/shell/Commons/Style.qml",
+        "/usr/share/omarchy/shell/Commons/Border.qml",
+        "/usr/share/omarchy/shell/Ui/KeyboardPanel.qml",
+        "/usr/share/omarchy/shell/Ui/Button.qml",
+        "/usr/share/omarchy/shell/Ui/CursorSurface.qml",
+        "/usr/share/omarchy/shell/Ui/TextField.qml",
+        "/usr/share/omarchy/shell/Ui/BarIconButton.qml",
+        "/usr/share/omarchy/shell/Ui/WidgetButton.qml",
+        "/usr/share/omarchy/shell/Ui/PanelSeparator.qml"
+      ],
+      "colorBindings": [
+        {
+          "expression": "Color.popups.background",
+          "use": "Outer native popup."
+        },
+        {
+          "expression": "Color.popups.text",
+          "use": "Local labels, row details, and fallback strokes."
+        },
+        {
+          "expression": "Color.popups.border",
+          "use": "Native popup border via Border.surfaceSpec."
+        },
+        {
+          "expression": "Color.accent",
+          "use": "Showing labels, visible-face diagrams, and host control accent input."
+        },
+        {
+          "expression": "Color.urgent",
+          "use": "Failure notices and saved-library errors."
+        },
+        {
+          "expression": "Color.foreground",
+          "use": "Host button, text-field, cursor-surface, and separator defaults."
+        },
+        {
+          "expression": "Color.tooltip.background / Color.tooltip.text / Color.tooltip.border",
+          "use": "Host tooltips."
+        },
+        {
+          "expression": "bar.barForeground / bar.urgent",
+          "use": "Bar entry via Ui.WidgetButton; Color.foreground / Color.urgent fallback."
+        }
+      ],
+      "palettePersistence": "Omarchy owns theme loading and theme/user shell.toml merging. This sidecar neither freezes a palette nor writes host settings.",
+      "fontBinding": "Style.fontFamily / Style.font.family: the monospace fontconfig alias, never a copied resolved font family.",
+      "shapeBindings": [
+        {
+          "expression": "Style.cornerRadius",
+          "use": "Popup, actions, text fields, and choice rows; mirrors Hyprland decoration:rounding."
+        },
+        {
+          "expression": "Math.min(Style.cornerRadius, Style.space(2))",
+          "use": "Local face diagrams and missing-icon window fallback."
+        },
+        {
+          "expression": "Border.surfaceSpec / Border.controlSpec",
+          "use": "Theme-owned popup and control state border geometry."
+        }
+      ],
+      "spacingBinding": "Custom geometry uses Style.space(n); host controls retain Style.spacing semantic tokens. Do not treat unscaled numeric operands as a fixed CSS scale.",
+      "layoutBindings": {
+        "requestedPopupWidth": "popup.fittedContentWidth(Style.space(440))",
+        "contentImplicitHeight": "Math.min(column.implicitHeight, Style.space(660))",
+        "popupHeight": "popup.fittedContentHeight(content.implicitHeight, Style.space(680))",
+        "popupPadding": "Style.spacing.popupPadding",
+        "screenAndBarGap": "Style.gapsOut",
+        "responsiveBehavior": "Host work-area fitting; wrapped Flow actions; wrapped row text; clipped vertical Flickable with automatic scrollbar. No named breakpoints."
+      },
+      "stateBindings": {
+        "action": "pressed fill > active focus > hover/cursor > selected > active > idle, as implemented by Ui.Button; disabled Action opacity is 0.45.",
+        "choiceRow": "current = selected; hasCursor = mouse.containsMouse || activeFocus; Ui.CursorSurface supplies shared fills and borders.",
+        "paneSelection": "The card key and pane address survive equivalent snapshot refreshes; selection clears when its target disappears or changes.",
+        "persistence": "Page, filter, pane selection, and exact-time disclosure are in-memory UI state. Hyprflip owns saved definitions and motion writes. This document does not establish persistence across shell restart."
+      },
+      "previewSupport": {
+        "available": false,
+        "reason": "The sidecar renderer supports HTML/CSS shadow-DOM snippets, while the artifact uses native QML and live qs.Commons bindings. Native components are recorded below; no fixed palette, CSS-token bridge, or faithful web preview is claimed."
+      },
+      "components": [
+        {
+          "name": "Action",
+          "kind": "button",
+          "refersTo": "action",
+          "description": "Native text action with Tab focus, accessible activation, and host state styling.",
+          "sources": [
+            "Action.qml",
+            "/usr/share/omarchy/shell/Ui/Button.qml"
+          ],
+          "qml": "Action { text: \"Flip\"; enabled: root.card && !root.card.unfolded; onClicked: root.service.cardAction(\"flip\") }"
+        },
+        {
+          "name": "Selected action",
+          "kind": "button",
+          "refersTo": "action",
+          "description": "Persistent choice for face layout or global motion speed using the host selected state.",
+          "sources": [
+            "Action.qml",
+            "CardsContent.qml",
+            "/usr/share/omarchy/shell/Ui/Button.qml"
+          ],
+          "qml": "Action { text: \"Beside\"; selected: face.modelData.axis === \"horizontal\" }"
+        },
+        {
+          "name": "Choice row",
+          "kind": "nav",
+          "refersTo": "choice-row",
+          "description": "Wrapped title and detail with optional desktop app icon; shared focus/cursor and persistent selection states.",
+          "sources": [
+            "ChoiceRow.qml",
+            "/usr/share/omarchy/shell/Ui/CursorSurface.qml"
+          ],
+          "qml": "ChoiceRow { title: modelData.label; showIcon: true; appIcon: modelData.icon || \"\"; selected: root.paneAddress === modelData.address }"
+        },
+        {
+          "name": "Search field",
+          "kind": "input",
+          "refersTo": "text-field",
+          "description": "Host field with search-focused arrow navigation and Enter activation of the selected saved row.",
+          "sources": [
+            "CardsContent.qml",
+            "/usr/share/omarchy/shell/Ui/TextField.qml"
+          ],
+          "qml": "Ui.TextField { placeholderText: \"Search saved cards…\"; Accessible.name: \"Search saved cards\" }"
+        },
+        {
+          "name": "Native popup",
+          "kind": "card",
+          "description": "Bar-anchored keyboard popup fitted to its screen, with native border, padding, focus, and dismissal.",
+          "sources": [
+            "Panel.qml",
+            "/usr/share/omarchy/shell/Ui/KeyboardPanel.qml"
+          ],
+          "qml": "Ui.KeyboardPanel { anchorItem: root.anchorItem; contentWidth: popup.fittedContentWidth(Style.space(440)); contentHeight: popup.fittedContentHeight(content.implicitHeight, Style.space(680)) }"
+        },
+        {
+          "name": "Two-face editor",
+          "kind": "custom",
+          "description": "Front/Back labels, per-pane outline diagrams, app-icon rows, explicit Showing text, and target-bound inline actions.",
+          "sources": [
+            "CardsContent.qml",
+            "ChoiceRow.qml"
+          ],
+          "nativeReferences": [
+            "Style.space(28) × Style.space(20) diagram",
+            "Color.accent for visible-face strokes",
+            "Color.popups.text for other strokes",
+            "Ui.PanelSeparator"
+          ]
+        },
+        {
+          "name": "Bar entry",
+          "kind": "nav",
+          "description": "Existing host BarIconButton optical alignment and active state; inherited Nerd Font glyph is a compatibility detail, not a new icon convention.",
+          "sources": [
+            "BarWidget.qml",
+            "/usr/share/omarchy/shell/Ui/BarIconButton.qml",
+            "/usr/share/omarchy/shell/Ui/WidgetButton.qml"
+          ],
+          "nativeReferences": [
+            "Ui.BarIconButton",
+            "Style.bar.iconSlot",
+            "Style.bar.iconCanvas",
+            "Style.bar.iconFont"
+          ]
+        }
+      ],
+      "evidence": {
+        "artifactSources": [
+          "PRODUCT.md",
+          "Panel.qml",
+          "CardsContent.qml",
+          "Action.qml",
+          "ChoiceRow.qml",
+          "Label.qml",
+          "BarWidget.qml",
+          "Service.qml",
+          "manifest.json"
+        ],
+        "reviewDirectory": ".impeccable/review",
+        "reviewScreenshotsAvailable": [
+          "cards.png",
+          "edit.png",
+          "motion.png",
+          "question.png",
+          "empty.png",
+          "narrow.png",
+          "scaled.png",
+          "light.png",
+          "dark.png",
+          "pane-edit.png"
+        ],
+        "screenshotsInspectedForDocumentation": [
+          "pane-edit.png",
+          "light.png",
+          "narrow.png"
+        ],
+        "notCanonized": "The inherited Nerd Font bar glyph remains a host-compatibility detail. No static theme snapshot, fabricated web preview, or unsupported UI persistence guarantee is established."
+      }
+    }
+  },
+  "components": [],
+  "narrative": {
+    "northStar": "Omarchy's native card controls",
+    "overview": "OmaCards is an Operate surface: a compact bar popup for choosing a saved card,\nacting on a running card, editing its two faces, and adjusting shared motion.\nIts visual authority is the installed Omarchy shell. It inherits the user's\ncurrent theme, font alias, control states, and popup geometry; it introduces no\nindependent brand palette or display typography. This follows the confirmed\ndirection in [PRODUCT.md](PRODUCT.md).\n\nThe surface is dense, text-led, and explicit about its targets. Front and Back\nstay understandable through names, app lists, small layout diagrams, and the\nword “Showing.” App icons support recognition. Navigation, choices, progress,\nand errors occupy the same native popup rather than creating another visual\nlayer.",
+    "keyCharacteristics": [
+      "Live Omarchy theme and font bindings.",
+      "Compact, scrollable controls anchored to the invoking bar and screen.",
+      "Plain text, recognizable app icons, and small structural diagrams.",
+      "Shared pointer and keyboard state treatments with explicit action targets."
+    ],
+    "rules": [
+      {
+        "name": "The Native Binding Rule",
+        "body": "Use `Color`, `Style`, and `qs.Ui` at the point of\nuse. Do not copy a theme's resolved values into OmaCards or introduce a competing\npalette.",
+        "section": "colors"
+      },
+      {
+        "name": "The Functional Text Rule",
+        "body": "Keep local explanatory text on\n`Color.popups.text` at full opacity. Use hierarchy, spacing, and font size for\nsecondary information; reserve the action wrapper's disabled opacity for\ndisabled actions.",
+        "section": "colors"
+      },
+      {
+        "name": "The Explicit Target Rule",
+        "body": "Inspecting a hidden face does not activate it.\nShow the named activation action before editing that face, and keep pane actions\nattached to the selected pane.",
+        "section": "components"
+      }
+    ],
+    "dos": [
+      "**Do** keep native `Color`, `Style`, `Border`, and `qs.Ui` bindings live.",
+      "**Do** use full-opacity popup text for local functional explanations.",
+      "**Do** pair face state with the word “Showing,” app names, and pane diagrams.",
+      "**Do** preserve keyboard activation, visible focus, and scrolling to targets.",
+      "**Do** verify narrow, scaled, light, and dark host configurations when extending the popup."
+    ],
+    "donts": [
+      "**Don't** add a private palette, fixed resolved font, radius scale, or shadow system.",
+      "**Don't** invent CSS tokens or HTML previews that claim to reproduce live QML bindings.",
+      "**Don't** use glyph icons as a new app-control convention; preserve the existing host bar integration separately.",
+      "**Don't** treat a refreshed snapshot object as a different selected card or pane.",
+      "**Don't** imply that UI selection or documented tokens create durable preferences."
+    ]
+  }
+}

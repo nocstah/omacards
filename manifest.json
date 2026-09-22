@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "id": "io.github.nocstah.omacards",
+  "name": "OmaCards",
+  "version": "0.1.0",
+  "author": "nocstah",
+  "description": "Open, edit and flip your Hyprflip cards from the Omarchy bar.",
+  "kinds": ["service", "bar-widget"],
+  "entryPoints": {"service": "Service.qml", "barWidget": "BarWidget.qml"},
+  "barWidget": {
+    "displayName": "OmaCards",
+    "category": "Utilities",
+    "allowMultiple": false,
+    "defaultSection": "right",
+    "defaults": {},
+    "schema": []
+  }
+}

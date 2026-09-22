@@ -1,0 +1,125 @@
+{
+  "protocol": 1,
+  "available": true,
+  "error": "",
+  "library_error": "",
+  "context": {
+    "instance": "demo",
+    "workspace": 2,
+    "anchor": "0xa",
+    "anchor_token": "fixture"
+  },
+  "capabilities": {
+    "containers": true,
+    "max_panes": 3,
+    "layout": true,
+    "replace": true,
+    "repair": true,
+    "peek": true
+  },
+  "cards": [
+    {
+      "id": 1,
+      "key": "container:1",
+      "kind": "container",
+      "token": "fixture",
+      "name": "Communications",
+      "workspace": 2,
+      "workspace_label": "2",
+      "current": "0xa",
+      "active": 0,
+      "unfolded": false,
+      "saved_names": [
+        "Communications"
+      ],
+      "faces": [
+        {
+          "index": 0,
+          "axis": "horizontal",
+          "panes": [
+            {
+              "address": "0xa",
+              "label": "Gmail",
+              "title": "Inbox \u2014 example mail",
+              "icon": "gmail"
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "axis": "horizontal",
+          "panes": [
+            {
+              "address": "0xb",
+              "label": "WhatsApp",
+              "title": "Example conversation",
+              "icon": "whatsapp"
+            },
+            {
+              "address": "0xc",
+              "label": "Telegram",
+              "title": "Project chat",
+              "icon": "telegram"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "saved": [
+    {
+      "name": "Communications",
+      "token": "fixture",
+      "open": true,
+      "detail": "Go to \u00b7 Workspace 2",
+      "description": "Gmail \u2194 WhatsApp + Telegram"
+    },
+    {
+      "name": "Research",
+      "token": "fixture",
+      "open": false,
+      "detail": "Open here",
+      "description": "Browser \u2194 Notes + Terminal"
+    }
+  ],
+  "transition": "flip",
+  "duration_ms": 420,
+  "motion_enabled": true,
+  "transition_modes": [
+    {
+      "value": "flip",
+      "label": "Flip",
+      "detail": "Turn sideways"
+    },
+    {
+      "value": "vertical",
+      "label": "Vertical flip",
+      "detail": "Turn top to bottom"
+    },
+    {
+      "value": "slide",
+      "label": "Slide",
+      "detail": "Move faces sideways"
+    },
+    {
+      "value": "fade",
+      "label": "Fade",
+      "detail": "Blend faces gently"
+    },
+    {
+      "value": "dissolve",
+      "label": "Dissolve",
+      "detail": "Experimental \u00b7 Reveal in soft fragments"
+    },
+    {
+      "value": "portal",
+      "label": "Portal",
+      "detail": "Experimental \u00b7 Reveal from the centre"
+    },
+    {
+      "value": "instant",
+      "label": "Instant",
+      "detail": "Switch without motion"
+    }
+  ]
+}
