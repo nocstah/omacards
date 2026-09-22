@@ -268,7 +268,7 @@ FocusScope {
                         text: !root.snapshotData.capabilities.containers
                             ? "Creating cards needs Hyprflip’s multi-app support and the hy3 provider."
                             : root.hasFrontApp
-                                ? "Choose another open app for the back. The apps will share one space; flip the card to switch between them."
+                                ? "Choose another open app for the back. Apps are resized to fit the card automatically. Flip to switch sides."
                                 : "Select the app you want on the front, then reopen Cards to choose an app for the back."
                         Layout.fillWidth: true
                     }

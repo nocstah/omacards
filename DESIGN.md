@@ -258,6 +258,8 @@ that opened apps stay open. When no card is selected, saved cards come before
 a separate creation section that names the front app and offers a nearby
 “Choose app for back…” action. With no saved cards, creation leads and search
 is hidden. The footer names the Edit and Saved cards shortcuts explicitly.
+Creation explains that apps resize to fit automatically; selecting a floating
+app does not introduce a separate confirmation about tiling.
 Capability-dependent controls and nearby explanations make unavailable
 editing understandable without changing the surface's visual system.
 

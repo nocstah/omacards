@@ -79,7 +79,9 @@ omarchy-shell omacards open motion
 
 Focus an app before opening the panel to select its card. If it is ungrouped,
 **Create a new card** names that app as the front. Choose **Choose app for back…**
-and select another open app. Saved cards appear separately above creation;
+and select another open app. Floating apps are resized to fit automatically;
+you do not need to arrange them first or confirm a separate tiling step.
+Saved cards appear separately above creation;
 you can open them without creating anything. If several cards share a workspace,
 choose one from the list. Hidden faces offer **Show and edit Front/Back**;
 that action turns the card before offering edits.
