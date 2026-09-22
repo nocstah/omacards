@@ -254,8 +254,11 @@ design record does not certify backend persistence or restart behavior.
 
 Backend questions, opening progress, cancellation, and actionable failures use
 the same popup and local labels. Progress offers one Cancel action and explains
-that opened apps stay open. The empty library still offers search and creation
-context. Capability-dependent controls and nearby explanations make unavailable
+that opened apps stay open. When no card is selected, saved cards come before
+a separate creation section that names the front app and offers a nearby
+“Choose app for back…” action. With no saved cards, creation leads and search
+is hidden. The footer names the Edit and Saved cards shortcuts explicitly.
+Capability-dependent controls and nearby explanations make unavailable
 editing understandable without changing the surface's visual system.
 
 ## Do's and Don'ts

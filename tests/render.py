@@ -17,7 +17,7 @@ with tempfile.TemporaryDirectory(prefix='omacards-render-') as directory:
     shutil.copy2(project / 'tests/render.qml', root / 'shell.qml')
     env = os.environ | dict(XDG_RUNTIME_DIR=str(root / 'runtime'), XDG_CONFIG_HOME=str(root / 'config'),
                             XDG_CACHE_HOME=str(root / 'cache'), QT_QPA_PLATFORM='offscreen',
-                            QT_QUICK_BACKEND='software', LIBGL_ALWAYS_SOFTWARE='1',
+                            QT_QPA_PLATFORMTHEME='', QT_QUICK_BACKEND='software', LIBGL_ALWAYS_SOFTWARE='1',
                             OMACARDS_FIXTURE=str(project / 'tests/fixture.json'), OMACARDS_CAPTURE_DIR=str(captures))
     env.pop('WAYLAND_DISPLAY', None)
     env.pop('DISPLAY', None)
@@ -30,4 +30,4 @@ with tempfile.TemporaryDirectory(prefix='omacards-render-') as directory:
     unexpected = [line for line in log.splitlines() if ('ERROR' in line or 'WARN scene' in line) and not any(a in line for a in allowed)]
     assert not unexpected, '\n'.join(unexpected)
     assert result.returncode == 0 and 'OMACARDS_UI_CAPTURE_OK' in log, log
-    print('Captured Cards, Edit, Motion, choices, empty, narrow, scaled and theme fixtures:', captures)
+    print('Captured Cards, Edit, Motion, choices, entry states, narrow, scaled and theme fixtures:', captures)

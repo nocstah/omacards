@@ -78,7 +78,9 @@ omarchy-shell omacards open motion
 ## Use and recovery
 
 Focus an app before opening the panel to select its card. If it is ungrouped,
-choose **Create card** and select another app. If several cards share a workspace,
+**Create a new card** names that app as the front. Choose **Choose app for back…**
+and select another open app. Saved cards appear separately above creation;
+you can open them without creating anything. If several cards share a workspace,
 choose one from the list. Hidden faces offer **Show and edit Front/Back**;
 that action turns the card before offering edits.
 

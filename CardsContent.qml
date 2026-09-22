@@ -21,12 +21,16 @@ FocusScope {
     property int choiceCursor: 0
     property bool advanced: false
     readonly property var savedRows: (snapshotData.saved || []).filter(row => (row.name + " " + row.description).toLowerCase().includes(filter.toLowerCase()))
+    readonly property bool hasSavedCards: (snapshotData.saved || []).length > 0
+    readonly property bool hasFrontApp: !!(service && service.context && service.context.anchor)
+    readonly property string frontAppName: hasFrontApp ? (service.context.anchor_label || "Selected app") : ""
     implicitWidth: Style.space(440)
     implicitHeight: Math.min(column.implicitHeight, Style.space(660))
     function focusEntry() {
         if (question && question.mode === "input") nameInput.forceActiveFocus()
         else if (question) choices.forceActiveFocus()
-        else if (page === "cards" && !busy) search.forceActiveFocus()
+        else if (page === "cards" && !busy && search.visible) search.forceActiveFocus()
+        else if (page === "cards" && !busy && chooseBack.visible && chooseBack.enabled) chooseBack.forceActiveFocus()
         else root.forceActiveFocus()
     }
     function back() {
@@ -163,13 +167,14 @@ FocusScope {
                 ColumnLayout {
                     visible: root.service && (root.service.cardsHere.length > 1 || (!root.card && root.service.cardsHere.length > 0))
                     Layout.fillWidth: true
-                    Label { text: "On this workspace"; font.pixelSize: Style.font.bodySmall }
+                    Label { text: "Open cards on this workspace"; font.pixelSize: Style.font.bodySmall }
                     Repeater {
                         model: root.service ? root.service.cardsHere : []
                         ChoiceRow {
                             required property var modelData
                             Layout.fillWidth: true
                             title: modelData.name
+                            detail: "Select to flip or edit"
                             selected: root.card && modelData.key === root.card.key
                             onActivated: root.service.selectedKey = modelData.key
                         }
@@ -201,58 +206,91 @@ FocusScope {
                     }
                     Label { text: "Multi-app editing and saved arrangements need a tiled card with the hy3 provider."; visible: root.card && root.card.kind === "pair"; Layout.fillWidth: true }
                 }
-                Label {
-                    text: root.service && root.service.context && root.service.context.anchor ? "This app is not in a card. Choose a second app to give it a back side." : "Open a saved card here, or focus an app to create a new card."
-                    Layout.fillWidth: true
-                    visible: root.card === null
-                }
-                Ui.PanelSeparator { Layout.fillWidth: true }
-                Label { text: "Saved cards"; font.bold: true }
-                Label { text: root.snapshotData.library_error || ""; visible: text.length > 0; color: Color.urgent; Layout.fillWidth: true }
-                Ui.TextField {
-                    id: search
-                    Layout.fillWidth: true
-                    placeholderText: "Search saved cards…"
-                    Accessible.name: "Search saved cards"
-                    text: root.filter
-                    onTextEdited: { root.filter = text; root.cursor = 0 }
-                    Keys.onUpPressed: root.cursor = Math.max(0, root.cursor - 1)
-                    Keys.onDownPressed: root.cursor = Math.min(root.savedRows.length - 1, root.cursor + 1)
-                    onAccepted: if (root.savedRows[root.cursor]) root.service.savedAction("open", root.savedRows[root.cursor])
-                }
+                Ui.PanelSeparator { Layout.fillWidth: true; visible: root.card !== null || (root.service && root.service.cardsHere.length > 0) }
                 ColumnLayout {
+                    id: savedLibrary
                     Layout.fillWidth: true
-                    spacing: Style.space(2)
-                    Repeater {
-                        id: savedRepeater
-                        model: root.savedRows
-                        RowLayout {
-                            required property var modelData
-                            required property int index
-                            Layout.fillWidth: true
-                            ChoiceRow {
+                    spacing: Style.space(8)
+                    visible: root.hasSavedCards || root.card !== null || !!root.snapshotData.library_error
+                    Label { text: "Saved cards"; font.bold: true }
+                    Label { text: root.snapshotData.library_error || ""; visible: text.length > 0; color: Color.urgent; Layout.fillWidth: true }
+                    Ui.TextField {
+                        id: search
+                        Layout.fillWidth: true
+                        visible: root.hasSavedCards
+                        placeholderText: "Search saved cards…"
+                        Accessible.name: "Search saved cards"
+                        text: root.filter
+                        onTextEdited: { root.filter = text; root.cursor = 0 }
+                        Keys.onUpPressed: root.cursor = Math.max(0, root.cursor - 1)
+                        Keys.onDownPressed: root.cursor = Math.min(root.savedRows.length - 1, root.cursor + 1)
+                        onAccepted: if (root.savedRows[root.cursor]) root.service.savedAction("open", root.savedRows[root.cursor])
+                    }
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: Style.space(2)
+                        Repeater {
+                            id: savedRepeater
+                            model: root.savedRows
+                            RowLayout {
+                                required property var modelData
+                                required property int index
                                 Layout.fillWidth: true
-                                title: modelData.name
-                                detail: modelData.detail + "\n" + modelData.description
-                                selected: search.activeFocus && root.cursor === index
-                                onActivated: root.service.savedAction("open", modelData)
+                                ChoiceRow {
+                                    Layout.fillWidth: true
+                                    title: modelData.name
+                                    detail: modelData.detail + "\n" + modelData.description
+                                    selected: search.activeFocus && root.cursor === index
+                                    onActivated: root.service.savedAction("open", modelData)
+                                }
+                                Action { text: "Manage"; tooltipText: "Rename, duplicate or delete “" + modelData.name + "”"; onClicked: root.service.savedAction("manage", modelData) }
                             }
-                            Action { text: "Manage"; tooltipText: "Rename, duplicate or delete “" + modelData.name + "”"; onClicked: root.service.savedAction("manage", modelData) }
                         }
                     }
+                    Label {
+                        Layout.fillWidth: true
+                        text: root.filter ? "No saved cards match your search." : "Save a card to reopen its apps and layout later."
+                        visible: root.savedRows.length === 0 && !root.snapshotData.library_error
+                    }
                 }
-                Label {
+                Ui.PanelSeparator { Layout.fillWidth: true; visible: root.card === null && savedLibrary.visible }
+                ColumnLayout {
                     Layout.fillWidth: true
-                    text: root.filter ? "No saved cards match your search." : "Save a card to bring its apps and layout back later."
-                    visible: root.savedRows.length === 0
+                    spacing: Style.space(8)
+                    visible: root.card === null
+                    Label { text: "Create a new card"; font.bold: true; Layout.fillWidth: true }
+                    Label {
+                        text: "Front: " + root.frontAppName
+                        visible: root.hasFrontApp && !!root.snapshotData.capabilities.containers
+                        Layout.fillWidth: true
+                    }
+                    Label {
+                        text: !root.snapshotData.capabilities.containers
+                            ? "Creating cards needs Hyprflip’s multi-app support and the hy3 provider."
+                            : root.hasFrontApp
+                                ? "Choose another open app for the back. The apps will share one space; flip the card to switch between them."
+                                : "Select the app you want on the front, then reopen Cards to choose an app for the back."
+                        Layout.fillWidth: true
+                    }
+                    Action {
+                        id: chooseBack
+                        text: "Choose app for back…"
+                        visible: root.hasFrontApp && !!root.snapshotData.capabilities.containers
+                        onClicked: root.service.run("create")
+                    }
+                    Label {
+                        text: "For a different front, focus that app and reopen Cards."
+                        visible: chooseBack.visible
+                        Layout.fillWidth: true
+                        font.pixelSize: Style.font.bodySmall
+                    }
                 }
-                Action {
-                    text: "Create card…"
-                    enabled: !!root.snapshotData.capabilities.containers && root.service && root.service.context && !!root.service.context.anchor && !root.card
-                    tooltipText: root.card ? "Focus an ungrouped app to create another card" : "Choose the apps for the other side"
-                    onClicked: root.service.run("create")
+                Ui.PanelSeparator { Layout.fillWidth: true }
+                Label {
+                    text: "Edit card: Super+Ctrl+Alt+C\nSaved cards: Super+Ctrl+Alt+L"
+                    Layout.fillWidth: true
+                    font.pixelSize: Style.font.bodySmall
                 }
-                Label { text: "Powered by Hyprflip · Your shortcuts still work"; font.pixelSize: Style.font.bodySmall }
             }
 
             ColumnLayout {
