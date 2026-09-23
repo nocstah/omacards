@@ -303,6 +303,52 @@ FocusScope {
                 Layout.fillWidth: true
                 spacing: Style.space(8)
                 Label { text: "Preferences apply to all cards and are kept after a restart."; Layout.fillWidth: true }
+                Label { text: "Card appearance"; Layout.fillWidth: true; font.weight: Font.DemiBold }
+                Label {
+                    visible: !root.snapshotData.capabilities.appearance
+                    text: "Update Hyprflip to choose the card appearance."
+                    Layout.fillWidth: true
+                }
+                Repeater {
+                    model: [
+                        {value: "classic", label: "Classic tabs", detail: "Tab bars above tiled cards. Floating multi-app cards keep their window borders."},
+                        {value: "frame", label: "Card frame", detail: "Shared outline and a small Flip control · Experimental"}
+                    ]
+                    delegate: ChoiceRow {
+                        required property var modelData
+                        Layout.fillWidth: true
+                        title: modelData.label
+                        detail: modelData.detail
+                        selected: root.snapshotData.appearance === modelData.value
+                        enabled: root.snapshotData.capabilities.appearance === true
+                        onActivated: root.service.run("appearance", {style: modelData.value})
+                    }
+                }
+                Label {
+                    text: "App spacing"
+                    visible: root.snapshotData.capabilities.spacing === true
+                    Layout.fillWidth: true
+                    font.weight: Font.DemiBold
+                }
+                Repeater {
+                    model: root.snapshotData.capabilities.spacing === true ? [
+                        {value: -1, label: "Desktop spacing", detail: "Match the gaps between ordinary tiled windows"},
+                        {value: 12, label: "Compact spacing", detail: "12 px between card apps · Leaves desktop gaps unchanged"}
+                    ] : []
+                    delegate: ChoiceRow {
+                        required property var modelData
+                        Layout.fillWidth: true
+                        title: modelData.label
+                        detail: modelData.detail
+                        selected: root.snapshotData.card_gap === modelData.value
+                        onActivated: root.service.run("spacing", {gap: modelData.value})
+                    }
+                }
+                Label {
+                    visible: root.snapshotData.capabilities.drag_to_add === true
+                    text: "To add an app, drag its window onto the card’s Drop to add target. Escape cancels the add."
+                    Layout.fillWidth: true
+                }
                 ChoiceRow {
                     Layout.fillWidth: true
                     title: "Motion"

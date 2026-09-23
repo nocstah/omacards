@@ -9,7 +9,7 @@ ShellRoot {
     id: harness
     property int step: 0
     property var original: null
-    property var shots: ["cards", "settings", "shortcuts", "shortcut-record", "shortcut-conflict", "settings-narrow", "settings-scaled", "edit", "motion", "question", "empty", "narrow", "scaled", "light", "dark", "pane-edit", "library-ungrouped", "no-front", "unselected-card", "long-front", "scaled-entry"]
+    property var shots: ["cards", "settings", "preferences-narrow", "preferences-light", "preferences-dark", "preferences-scaled", "shortcuts", "shortcut-record", "shortcut-conflict", "settings-narrow", "settings-scaled", "edit", "motion", "question", "empty", "narrow", "scaled", "light", "dark", "pane-edit", "library-ungrouped", "no-front", "unselected-card", "long-front", "scaled-entry"]
     function findItem(item, name) {
         if (item.objectName === name) return item
         for (const child of item.children || []) { const found = findItem(child, name); if (found) return found }
@@ -57,6 +57,19 @@ ShellRoot {
                 service.snapshot = JSON.parse(JSON.stringify(harness.original))
                 service.context = service.snapshot.context
                 service.selectedKey = "container:1"
+                if (next.startsWith("preferences-")) {
+                    service.page = "settings"
+                    window.width = next === "preferences-narrow" ? 340 : next === "preferences-scaled" ? 936 : 468
+                    window.height = next === "preferences-narrow" ? 550 : next === "preferences-scaled" ? 1400 : 700
+                    Style.spacingScale = next === "preferences-scaled" ? 2 : 1
+                    Style.fontBaseSize = next === "preferences-scaled" ? 24 : 12
+                    Color.shellValues = ({})
+                    Color.background = next === "preferences-dark" ? "#1c2026" : "#faf8f3"
+                    Color.foreground = next === "preferences-dark" ? "#e6e9ef" : "#242424"
+                    Color.accent = next === "preferences-dark" ? "#a9bfff" : "#2255aa"
+                    Color.muted = next === "preferences-dark" ? "#9ba6b5" : "#666666"
+                }
+                if (next === "shortcuts") {window.width=468;window.height=700;Style.spacingScale=1;Style.fontBaseSize=12}
                 if (["shortcut-record", "shortcut-conflict", "settings-narrow", "settings-scaled"].includes(next)) {
                     service.page = "shortcuts"
                     const editor = harness.findItem(content, "shortcutSettings")

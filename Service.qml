@@ -93,7 +93,7 @@ Scope {
         notice = ""
         question = null
         opening = null
-        returnToPanel = ["edit", "manage", "transition", "duration", "preview", "shortcut", "floating"].indexOf(action) >= 0
+        returnToPanel = ["edit", "manage", "transition", "duration", "preview", "shortcut", "floating", "appearance", "spacing"].indexOf(action) >= 0
         operationProcess.command = ["python3", backend, "run", "--request", JSON.stringify(request)]
         operationProcess.running = true
     }

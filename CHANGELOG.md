@@ -2,7 +2,11 @@
 
 ## Unreleased
 
-- Pin the executable Hyprflip dependency to `f4051aa5970dc816875839968b2629e462cb0a46`.
+- Add persistent Classic tabs / experimental Card frame and Desktop / Compact
+  spacing choices in Settings, with controls gated by backend capabilities.
+- Support the matching ABI 7 backend's five apps per face and document its
+  explicit drag-to-add targets, slot previews and cancellation.
+- Pin the executable Hyprflip dependency to `356ae252d01c6987616efe2a97e83a21951d6886`.
   Installation verifies a clean checkout at that exact revision before running
   the shared helper installer; dependency documentation uses immutable links.
 
