@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.0-rc.2 — 2026-09-23
+
+- Pin Hyprflip to `22db6eb9bff869ed5614976757bc76eb191ec165`, the matching
+  0.3.0-rc.2 core/helper revision. The core can give unfolded faces unequal
+  room to satisfy app size limits; the Comms example now fits its laptop tile.
+- Keep the panel API and controls unchanged. Installation links select the
+  tested core with the adaptive-unfold fix.
+
 ## 0.2.0-rc.1 — 2026-09-23
 
 Preview for Hyprflip’s native dwindle cards on Hyprland 0.56.2.
