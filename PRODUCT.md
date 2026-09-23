@@ -10,7 +10,7 @@ keyboard shortcuts. Use Omarchy's current palette, fonts, controls and focus
 behavior. Native desktop consistency and completing the workflow matter more
 than decorative branding.
 
-There are two faces, one to five apps per face with the optional hy3 provider.
+There are two faces, one to five apps per face on native dwindle or with the optional hy3 provider.
 Native pairs can be flipped; multi-app editing and saved arrangements require
 containers. Live edits never silently overwrite saved definitions. Removing an
 app from a card keeps the app open. Open saved cards directly, asking only when

@@ -22,10 +22,11 @@ These are examples, not presets or required apps. Build a card from the windows
 you already use. Give each project its own saved arrangement and workspace, or
 keep a floating communications card that you can move and resize as one unit.
 
-![Hyprflip demonstrating a two-sided card](https://raw.githubusercontent.com/nocstah/hyprflip/356ae252d01c6987616efe2a97e83a21951d6886/media/hyprflip-preview.gif)
+![Hyprflip demonstrating a two-sided card](https://raw.githubusercontent.com/nocstah/hyprflip/537c4d5fea96a393048f161e3a220abf4e502c15/media/dwindle-preview.gif)
 
-[Watch the full desktop demo](https://github.com/nocstah/hyprflip/blob/356ae252d01c6987616efe2a97e83a21951d6886/media/hyprflip-demo.mp4).
-The animation is provided by Hyprflip; OmaCards adds the native bar controls below.
+[Watch the full desktop demo](https://github.com/nocstah/hyprflip/blob/537c4d5fea96a393048f161e3a220abf4e502c15/media/dwindle-demo.mp4).
+The footage uses sample windows on native dwindle with the Hyprflip core alone.
+OmaCards adds the native bar controls below.
 
 ![OmaCards editor with sample app names](media/editor.png)
 
@@ -76,7 +77,7 @@ maintain a second card database, or start a background Python daemon.
 
 ## Appearance, spacing and dragging
 
-With the pinned Hyprflip ABI 7 core, provider and helper below, Settings
+With the pinned Hyprflip core and helper below, Settings
 offers **Classic tabs** or **Card frame (Experimental)**, plus **Desktop
 spacing** or **Compact spacing (12 logical pixels)** between apps. Choices apply
 to existing cards and survive configuration reloads and restarts.
@@ -88,21 +89,26 @@ placement; Escape or dropping elsewhere cancels the add. When unfolded, either
 face can receive the app. Native one-app pairs need a multi-app container first.
 
 These controls detect backend capabilities. Install the exact pinned revision
-below, including its matching core, provider and helper, to enable the new
-features. Updating the panel alone does not update the compositor libraries.
+below, including its matching core and helper, to enable these features.
+The hy3 provider is only needed on hy3 workspaces. Updating the panel alone
+does not update the compositor libraries.
 
 ## Requirements
 
+This is the **0.2.0-rc.1 preview**, paired with Hyprflip’s 0.3.0 dwindle preview.
+
 - Omarchy 4's stock Quickshell bar; tested with 4.0.4.
-- Hyprflip at **`356ae252d01c6987616efe2a97e83a21951d6886`** (bridge ABI 7),
+- Hyprflip at **`537c4d5fea96a393048f161e3a220abf4e502c15`** (bridge ABI 7),
   including its JSON helper (protocol 1), Python 3 and GLib.
-- For multi-app and saved cards: the matching Hyprflip hy3 provider, up to five
-  apps per face. A basic native pair still supports Flip and Motion.
+- **Dwindle:** multi-app and saved cards need only the core and helper. Keep
+  Omarchy’s default workspace layout; no hy3 installation is required.
+- **Hy3 (optional):** use the matching provider if you already use hy3.
+  A basic native pair still supports Flip and Motion.
 
 ### Install the pinned Hyprflip dependency
 
 This OmaCards revision is bound to Hyprflip commit
-[`356ae252d01c6987616efe2a97e83a21951d6886`](https://github.com/nocstah/hyprflip/tree/356ae252d01c6987616efe2a97e83a21951d6886).
+[`537c4d5fea96a393048f161e3a220abf4e502c15`](https://github.com/nocstah/hyprflip/tree/537c4d5fea96a393048f161e3a220abf4e502c15).
 Use this exact revision for both the compositor components and the helper that
 OmaCards executes. The optional hy3 provider is itself pinned by that revision to
 `42b7ed8fd9aefd3f36e5f617afd5071245c67853`.
@@ -111,32 +117,35 @@ Create a separate checkout and verify its revision:
 
 ```sh
 git clone --no-checkout https://github.com/nocstah/hyprflip.git hyprflip-omacards &&
-git -C hyprflip-omacards checkout --detach 356ae252d01c6987616efe2a97e83a21951d6886 &&
-test "$(git -C hyprflip-omacards rev-parse HEAD)" = 356ae252d01c6987616efe2a97e83a21951d6886
+git -C hyprflip-omacards checkout --detach 537c4d5fea96a393048f161e3a220abf4e502c15 &&
+test "$(git -C hyprflip-omacards rev-parse HEAD)" = 537c4d5fea96a393048f161e3a220abf4e502c15
 ```
 
-Build and install the compositor components **from `hyprflip-omacards`**, following
-[the installation guide at that same commit](https://github.com/nocstah/hyprflip/blob/356ae252d01c6987616efe2a97e83a21951d6886/docs/INSTALL.md).
-Use its supplied installer and, for multi-app cards, its matching provider
-procedure. The separate checkout above replaces the guide's clone step; keep it
-at the pinned revision instead of using its `git pull` or hyprpm update paths.
-Installing OmaCards itself never builds, replaces or unloads compositor libraries.
+For a first installation on **dwindle**, run the block below from the directory
+containing `hyprflip-omacards`. It verifies the revision, builds and installs the
+core, then installs the shared helper. Dependencies and alternative installation
+methods are in [the installation guide at that same commit](https://github.com/nocstah/hyprflip/blob/537c4d5fea96a393048f161e3a220abf4e502c15/docs/INSTALL.md).
 
-From the directory containing `hyprflip-omacards`, install that exact helper.
-These checks stop before installation if the checkout has changed:
+For an existing installation, save and ungroup active dwindle cards before
+updating, then reopen them. Existing hy3 cards use the guide’s provider updater.
+Installing the OmaCards panel itself does not replace compositor libraries.
 
 ```sh
 (
   set -eu
   cd hyprflip-omacards
-  test "$(git rev-parse HEAD)" = 356ae252d01c6987616efe2a97e83a21951d6886
+  test "$(git rev-parse HEAD)" = 537c4d5fea96a393048f161e3a220abf4e502c15
   test -z "$(git status --porcelain --untracked-files=all)"
+  make test
+  python3 scripts/install.py --dry-run
+  python3 scripts/install.py
   python3 scripts/install-setup.py --dry-run
   python3 scripts/install-setup.py
 )
 ```
 
-For native pairs without containers, add `--backend-only` to both Python commands.
+For basic pairs without multi-app controls, add `--backend-only` to both
+`install-setup.py` commands.
 This installs the helper and persistent motion preferences without rebinding
 container shortcuts. The installer backs up replaced files and checks that
 existing cards survive the configuration reload. The installed entry point is
@@ -231,7 +240,7 @@ compositor restart is needed for this QML interface.
 
 ## Development and checks
 
-See [the protocol](https://github.com/nocstah/hyprflip/blob/356ae252d01c6987616efe2a97e83a21951d6886/docs/PANEL_API.md).
+See [the protocol](https://github.com/nocstah/hyprflip/blob/537c4d5fea96a393048f161e3a220abf4e502c15/docs/PANEL_API.md).
 The workflow backend belongs to Hyprflip; do not copy it into this project.
 
 For local development, clone this repository and pass its absolute path to
@@ -242,14 +251,15 @@ checkout with `manifest.json` at the root. Run development checks from that chec
 omarchy plugin validate .
 python3 tests/render.py
 python3 tests/run-native.py /tmp/oc-demo/session.json \
-  --backend /path/to/hyprflip/scripts/control.py
+  --backend /path/to/hyprflip/scripts/control.py --dwindle
 ```
 
 The last check requires Hyprflip's disposable three-window session:
-`python3 tests/nested_session.py --directory /tmp/oc-demo --containers` from its
+`python3 tests/nested_session.py --directory /tmp/oc-demo --native-cards` from its
 checkout. The runner rejects a live desktop connection, creates a headless
 test output, and tests popup focus, flip/unfold, structured save/edit, motion
 and direct saved-card activation. Rendering uses synthetic fixture data.
+For the optional hy3 path, launch with `--containers` and omit `--dwindle`.
 
 MIT licensed. Built on Hyprflip and Omarchy's native shell components.
 

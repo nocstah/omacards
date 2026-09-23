@@ -208,7 +208,7 @@ FocusScope {
                         Action { text: "Edit"; visible: root.card && root.card.kind === "container"; onClicked: root.service.page = "edit" }
                         Action { text: "Save…"; visible: root.card && root.card.kind === "container"; onClicked: root.edit("save", root.card.active, null) }
                     }
-                    Label { text: "Multi-app editing and saved arrangements need a tiled card with the hy3 provider."; visible: root.card && root.card.kind === "pair"; Layout.fillWidth: true }
+                    Label { text: "Ungroup this pair, then choose Create a new card to enable editing and saved arrangements."; visible: root.card && root.card.kind === "pair"; Layout.fillWidth: true }
                 }
                 Ui.PanelSeparator { Layout.fillWidth: true; visible: root.card !== null || (root.service && root.service.cardsHere.length > 0) }
                 ColumnLayout {
@@ -270,7 +270,7 @@ FocusScope {
                     }
                     Label {
                         text: !root.snapshotData.capabilities.containers
-                            ? "Creating cards needs Hyprflip’s multi-app support and the hy3 provider."
+                            ? "Update Hyprflip and its helper to create multi-app cards on dwindle."
                             : root.hasFrontApp
                                 ? "Choose another open app for the back. Apps are resized to fit the card automatically. Flip to switch sides."
                                 : "Select the app you want on the front, then reopen Cards to choose an app for the back."

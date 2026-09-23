@@ -13,6 +13,7 @@ import time
 p = argparse.ArgumentParser(description=__doc__)
 p.add_argument('session', type=Path)
 p.add_argument('--backend', type=Path, required=True)
+p.add_argument('--dwindle', action='store_true', help='Test the core-only native dwindle card fixture')
 args = p.parse_args()
 connection = json.loads(args.session.read_text())
 session_root = Path(connection['XDG_RUNTIME_DIR']).resolve().parent
@@ -33,9 +34,13 @@ names = {m['name'] for m in json.loads(ctl('-j', 'monitors'))}
 ctl('output', 'create', 'headless')
 output = next(m['name'] for m in json.loads(ctl('-j', 'monitors')) if m['name'] not in names)
 try:
+    layout = 'dwindle' if args.dwindle else 'hy3'
+    status = json.loads(ctl('hyprflip', 'status'))
+    if args.dwindle:
+        assert status['native_cards'] and not status['hy3_provider']
     workspace = max(w['id'] for w in json.loads(ctl('-j', 'workspaces'))) + 20
     ctl('eval', f'hl.monitor({{output="{output}",mode="1920x1080@60",position="2000x0",scale=1}}); '
-               f'hl.workspace_rule({{workspace="{workspace}",monitor="{output}",layout="hy3"}})')
+               f'hl.workspace_rule({{workspace="{workspace}",monitor="{output}",layout="{layout}"}})')
     cards = json.loads(ctl('hyprflip', 'status'))['containers']
     assert len(cards) == 1, 'Use the three-app nested container fixture'
     apps = session_root / 'data/applications'
