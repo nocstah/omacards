@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.0-rc.3 — 2026-09-26
+
+- Pin Hyprflip to `3dcb57cf10ec7181c88b7887b87936bdd2f72e15`. Saved cards now
+  reopen web apps after the default browser changes, for example a Gmail card
+  saved in Brave now opens with Helium or Chrome. Bridge ABI 7, helper
+  protocol 1 and the hy3 provider pin are unchanged.
+
 ## 0.2.0-rc.2 — 2026-09-23
 
 - Pin Hyprflip to `22db6eb9bff869ed5614976757bc76eb191ec165`, the matching

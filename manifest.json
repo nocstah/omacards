@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "io.github.nocstah.omacards",
   "name": "OmaCards",
-  "version": "0.2.0-rc.2",
+  "version": "0.2.0-rc.3",
   "author": "nocstah",
   "description": "Group related apps into reusable, two-sided cards that flip in the same desktop space. Put an editor and terminal on the front and a browser preview on the back, or email opposite WhatsApp and Telegram. Create and edit cards from the bar, save layouts, reopen apps, and assign cards to workspaces. Supports up to five apps per side, floating cards that move together, unfold, drag-to-add, Classic tabs or card frames, compact spacing, animation settings and custom shortcuts. Works on Omarchy’s default dwindle layout; hy3 is optional. Requires a separate Hyprflip installation.",
   "kinds": [
