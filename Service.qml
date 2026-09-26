@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
+import qs.Commons
 
 // One owner for requests across monitors. The helper owns every window change.
 Scope {
@@ -33,6 +34,10 @@ Scope {
     readonly property bool refreshing: snapshotProcess.running
     readonly property var cardsHere: (snapshot.cards || []).filter(c => context && c.workspace === context.workspace)
     readonly property var currentCard: cardsHere.find(c => c.key === selectedKey) || null
+    // The accent ring follows the Omarchy theme; Hyprflip only stores a color.
+    readonly property string accentHex: "#" + [Color.accent.r, Color.accent.g, Color.accent.b]
+        .map(c => Math.round(c * 255).toString(16).padStart(2, "0")).join("").toUpperCase()
+    onAccentHexChanged: accentSync.restart()
 
     function prepareOpen(widget) {
         if (owner && owner !== widget) owner.dismiss()
@@ -93,7 +98,7 @@ Scope {
         notice = ""
         question = null
         opening = null
-        returnToPanel = ["edit", "manage", "transition", "duration", "preview", "shortcut", "floating", "appearance", "spacing"].indexOf(action) >= 0
+        returnToPanel = ["edit", "manage", "transition", "duration", "preview", "shortcut", "floating", "appearance", "spacing", "accent"].indexOf(action) >= 0
         operationProcess.command = ["python3", backend, "run", "--request", JSON.stringify(request)]
         operationProcess.running = true
     }
@@ -191,6 +196,21 @@ Scope {
             Qt.callLater(function() { root.refresh(false) })
         }
     }
+    // Theme switches update several colors at once; send the settled accent.
+    // The helper skips unchanged colors, and older Hyprflip builds just refuse.
+    Timer {
+        id: accentSync
+        interval: 400
+        onTriggered: {
+            if (accentProcess.running) { restart(); return }
+            accentProcess.command = ["python3", root.backend, "accent-color", "--color", root.accentHex]
+            accentProcess.running = true
+        }
+    }
+    Process {
+        id: accentProcess
+        stdout: StdioCollector { waitForEnd: true }
+    }
     Timer {
         id: cancelTimer
         interval: 9000
@@ -225,6 +245,7 @@ Scope {
             return root.shell.summon(root.pluginId, "") ? "ok" : "unavailable"
         }
     }
+    Component.onCompleted: accentSync.restart()
     Component.onDestruction: {
         if (operationProcess.running) {
             operationProcess.write('{"cancel":true}\n')

@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.0-rc.4 — 2026-09-26
+
+- Pin Hyprflip to `3449c39d2c11d83659589360998d3bf1756a54a0`, which adds the accent ring.
+  Bridge ABI 7, helper protocol 1 and the hy3 provider pin are unchanged.
+- Add **Card highlight → Accent ring** in Settings. The ring uses the Omarchy
+  theme accent and follows theme changes; the service syncs the color through
+  the Hyprflip helper. Needs a Hyprflip build with the accent ring and stays
+  hidden otherwise.
+
 ## 0.2.0-rc.3 — 2026-09-26
 
 - Pin Hyprflip to `3dcb57cf10ec7181c88b7887b87936bdd2f72e15`. Saved cards now

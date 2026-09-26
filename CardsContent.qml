@@ -345,6 +345,26 @@ FocusScope {
                     }
                 }
                 Label {
+                    text: "Card highlight"
+                    visible: root.snapshotData.capabilities.accent === true
+                    Layout.fillWidth: true
+                    font.weight: Font.DemiBold
+                }
+                Repeater {
+                    model: root.snapshotData.capabilities.accent === true ? [
+                        {value: false, label: "No highlight", detail: "Cards use only the appearance above"},
+                        {value: true, label: "Accent ring", detail: "A ring in your theme’s accent color around every card · Follows theme changes"}
+                    ] : []
+                    delegate: ChoiceRow {
+                        required property var modelData
+                        Layout.fillWidth: true
+                        title: modelData.label
+                        detail: modelData.detail
+                        selected: root.snapshotData.accent_ring === modelData.value
+                        onActivated: root.service.run("accent", {enabled: modelData.value, color: root.service.accentHex})
+                    }
+                }
+                Label {
                     visible: root.snapshotData.capabilities.drag_to_add === true
                     text: "To add an app, drag its window onto the card’s Drop to add target. Escape cancels the add."
                     Layout.fillWidth: true

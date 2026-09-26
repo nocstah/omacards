@@ -66,7 +66,7 @@ each app controls its own documents, browser tabs and login state.
 - **Floating cards:** float or tile the whole arrangement, then move and resize
   all of its apps together.
 - **Settings:** Classic tabs or an experimental card frame, Desktop or Compact
-  spacing, motion, and editable keyboard shortcuts with conflict checks and
+  spacing, an optional accent ring in your theme's color, motion, and editable keyboard shortcuts with conflict checks and
   per-action defaults.
 - **Motion:** seven transitions, individual previews, speed presets and exact
   duration. Dissolve and Portal are experimental. Settings apply to all cards.
@@ -83,6 +83,12 @@ offers **Classic tabs** or **Card frame (Experimental)**, plus **Desktop
 spacing** or **Compact spacing (12 logical pixels)** between apps. Choices apply
 to existing cards and survive configuration reloads and restarts.
 
+Turn on **Card highlight → Accent ring** to draw a ring in your Omarchy theme's
+accent color around every card, so you can tell card windows from ordinary
+ones at a glance. The ring follows theme changes. The focused card's ring is
+fully opaque and other cards' rings are quieter. The ring needs a Hyprflip
+build that includes it; until then the choice stays hidden.
+
 Cards support **five apps per side**, subject to the apps'
 minimum sizes. Hold Super and drag an outside window onto the **Drop to add to
 Front/Back** target to add it to that face. The highlighted slot previews the
@@ -96,10 +102,10 @@ does not update the compositor libraries.
 
 ## Requirements
 
-This is the **0.2.0-rc.3 preview**, paired with Hyprflip 0.3.0-rc.2 plus its saved-card browser fix.
+This is the **0.2.0-rc.4 preview**, paired with Hyprflip 0.3.0-rc.2 plus its saved-card browser fix and accent ring.
 
 - Omarchy 4's stock Quickshell bar; tested with 4.0.4.
-- Hyprflip at **`3dcb57cf10ec7181c88b7887b87936bdd2f72e15`** (bridge ABI 7),
+- Hyprflip at **`3449c39d2c11d83659589360998d3bf1756a54a0`** (bridge ABI 7),
   including its JSON helper (protocol 1), Python 3 and GLib.
 - **Dwindle:** multi-app and saved cards need only the core and helper. Keep
   Omarchy’s default workspace layout; no hy3 installation is required.
@@ -109,7 +115,7 @@ This is the **0.2.0-rc.3 preview**, paired with Hyprflip 0.3.0-rc.2 plus its sav
 ### Install the pinned Hyprflip dependency
 
 This OmaCards revision is bound to Hyprflip commit
-[`3dcb57cf10ec7181c88b7887b87936bdd2f72e15`](https://github.com/nocstah/hyprflip/tree/3dcb57cf10ec7181c88b7887b87936bdd2f72e15).
+[`3449c39d2c11d83659589360998d3bf1756a54a0`](https://github.com/nocstah/hyprflip/tree/3449c39d2c11d83659589360998d3bf1756a54a0).
 Use this exact revision for both the compositor components and the helper that
 OmaCards executes. The optional hy3 provider is itself pinned by that revision to
 `42b7ed8fd9aefd3f36e5f617afd5071245c67853`.
@@ -118,14 +124,14 @@ Create a separate checkout and verify its revision:
 
 ```sh
 git clone --no-checkout https://github.com/nocstah/hyprflip.git hyprflip-omacards &&
-git -C hyprflip-omacards checkout --detach 3dcb57cf10ec7181c88b7887b87936bdd2f72e15 &&
-test "$(git -C hyprflip-omacards rev-parse HEAD)" = 3dcb57cf10ec7181c88b7887b87936bdd2f72e15
+git -C hyprflip-omacards checkout --detach 3449c39d2c11d83659589360998d3bf1756a54a0 &&
+test "$(git -C hyprflip-omacards rev-parse HEAD)" = 3449c39d2c11d83659589360998d3bf1756a54a0
 ```
 
 For a first installation on **dwindle**, run the block below from the directory
 containing `hyprflip-omacards`. It verifies the revision, builds and installs the
 core, then installs the shared helper. Dependencies and alternative installation
-methods are in [the installation guide at that same commit](https://github.com/nocstah/hyprflip/blob/3dcb57cf10ec7181c88b7887b87936bdd2f72e15/docs/INSTALL.md).
+methods are in [the installation guide at that same commit](https://github.com/nocstah/hyprflip/blob/3449c39d2c11d83659589360998d3bf1756a54a0/docs/INSTALL.md).
 
 For an existing installation, save and ungroup active dwindle cards before
 updating, then reopen them. Existing hy3 cards use the guide’s provider updater.
@@ -135,7 +141,7 @@ Installing the OmaCards panel itself does not replace compositor libraries.
 (
   set -eu
   cd hyprflip-omacards
-  test "$(git rev-parse HEAD)" = 3dcb57cf10ec7181c88b7887b87936bdd2f72e15
+  test "$(git rev-parse HEAD)" = 3449c39d2c11d83659589360998d3bf1756a54a0
   test -z "$(git status --porcelain --untracked-files=all)"
   make test
   python3 scripts/install.py --dry-run
@@ -216,7 +222,7 @@ python3 ~/.local/lib/hyprflip/setup.py --legacy --cards
 omarchy-shell omacards status
 ```
 
-Motion, appearance and spacing preferences are stored with Hyprflip, in
+Motion, appearance, spacing and accent ring preferences are stored with Hyprflip, in
 `$XDG_STATE_HOME/hyprflip` (normally `~/.local/state/hyprflip`), alongside the existing saved-card library. Disabling
 OmaCards leaves them, your apps, cards and compositor plugins intact:
 
@@ -241,7 +247,7 @@ compositor restart is needed for this QML interface.
 
 ## Development and checks
 
-See [the protocol](https://github.com/nocstah/hyprflip/blob/3dcb57cf10ec7181c88b7887b87936bdd2f72e15/docs/PANEL_API.md).
+See [the protocol](https://github.com/nocstah/hyprflip/blob/3449c39d2c11d83659589360998d3bf1756a54a0/docs/PANEL_API.md).
 The workflow backend belongs to Hyprflip; do not copy it into this project.
 
 For local development, clone this repository and pass its absolute path to
