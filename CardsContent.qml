@@ -188,7 +188,7 @@ FocusScope {
                     Layout.fillWidth: true
                     spacing: Style.space(8)
                     Label { text: root.card ? root.card.name : ""; Layout.fillWidth: true; font.bold: true; font.pixelSize: Style.font.title }
-                    Label { text: root.card ? "Workspace " + root.card.workspace_label + (root.card.unfolded ? " · Both sides visible" : "") + (root.card.floating ? " · Floating" : "") : ""; font.pixelSize: Style.font.bodySmall }
+                    Label { text: root.card ? "Workspace " + root.card.workspace_label + (root.card.unfolded ? " · Both sides visible" : "") + (root.card.floating ? " · Floating" : "") + (root.card.fullscreen ? " · Fullscreen" : "") : ""; font.pixelSize: Style.font.bodySmall }
                     Repeater {
                         model: root.card ? root.card.faces : []
                         RowLayout {
@@ -204,7 +204,8 @@ FocusScope {
                         spacing: Style.space(6)
                         Action { text: "Flip"; enabled: root.card && !root.card.unfolded; onClicked: root.service.cardAction("flip") }
                         Action { text: root.card && root.card.unfolded ? "Fold" : "Unfold"; visible: root.card && root.card.kind === "container"; onClicked: root.service.cardAction("unfold") }
-                        Action { text: root.card && root.card.floating ? "Tile card" : "Float card"; visible: !!root.snapshotData.capabilities.floating; onClicked: root.service.cardAction("floating") }
+                        Action { text: root.card && root.card.floating ? "Tile card" : "Float card"; visible: !!root.snapshotData.capabilities.floating; enabled: !(root.card && root.card.fullscreen); tooltipText: root.card && root.card.fullscreen ? "Leave fullscreen first" : ""; onClicked: root.service.cardAction("floating") }
+                        Action { text: root.card && root.card.fullscreen ? "Leave fullscreen" : "Fullscreen"; visible: !!root.snapshotData.capabilities.fullscreen && root.card && root.card.native === true; tooltipText: "Fill the screen with the whole card · Apps keep their toolbars"; onClicked: root.service.cardAction("fullscreen") }
                         Action { text: "Edit"; visible: root.card && root.card.kind === "container"; onClicked: root.service.page = "edit" }
                         Action { text: "Save…"; visible: root.card && root.card.kind === "container"; onClicked: root.edit("save", root.card.active, null) }
                     }
@@ -365,6 +366,36 @@ FocusScope {
                     }
                 }
                 Label {
+                    text: "Fullscreen divider"
+                    visible: root.snapshotData.capabilities.divider === true
+                    Layout.fillWidth: true
+                    font.weight: Font.DemiBold
+                }
+                Label {
+                    visible: root.snapshotData.capabilities.divider === true
+                    text: "The line between apps of a fullscreen card, in " +
+                          (root.snapshotData.divider_color ? root.snapshotData.divider_color : "your accent color") + ". Off lets the apps touch."
+                    Layout.fillWidth: true
+                    font.pixelSize: Style.font.bodySmall
+                }
+                Flow {
+                    visible: root.snapshotData.capabilities.divider === true
+                    Layout.fillWidth: true
+                    spacing: Style.space(6)
+                    Repeater {
+                        model: root.snapshotData.capabilities.divider === true ? [
+                            {value: 0, label: "Off"}, {value: 1, label: "1 px"}, {value: 2, label: "2 px"},
+                            {value: 3, label: "3 px"}, {value: 4, label: "4 px"}
+                        ] : []
+                        delegate: Action {
+                            required property var modelData
+                            text: modelData.label
+                            selected: root.snapshotData.fullscreen_divider === modelData.value
+                            onClicked: root.service.run("divider", {width: modelData.value})
+                        }
+                    }
+                }
+                Label {
                     visible: root.snapshotData.capabilities.drag_to_add === true
                     text: "To add an app, drag its window onto the card’s Drop to add target. Escape cancels the add."
                     Layout.fillWidth: true
@@ -453,7 +484,7 @@ FocusScope {
                             spacing: Style.space(4)
                             Action { text: "Replace…"; enabled: !!root.snapshotData.capabilities.replace; onClicked: root.edit("replace", face.modelData.index, root.paneAddress) }
                             Action { text: "Other side"; enabled: face.modelData.panes.length > 1 && root.card && root.card.faces[1 - face.modelData.index].panes.length < root.snapshotData.capabilities.max_panes; onClicked: root.edit("other_side", face.modelData.index, root.paneAddress) }
-                            Action { text: face.modelData.panes.length > 1 ? "Remove" : "Ungroup card"; tooltipText: "Keep all apps open"; onClicked: root.edit(face.modelData.panes.length > 1 ? "remove" : "unpair", face.modelData.index, root.paneAddress) }
+                            Action { text: face.modelData.panes.length > 1 ? "Remove" : "Ungroup card"; tooltipText: face.modelData.panes.length === 1 && root.card && root.card.fullscreen ? "Leave fullscreen first" : "Keep all apps open"; enabled: face.modelData.panes.length > 1 || !(root.card && root.card.fullscreen); onClicked: root.edit(face.modelData.panes.length > 1 ? "remove" : "unpair", face.modelData.index, root.paneAddress) }
                             Action { text: "Earlier"; visible: face.modelData.panes.length > 1; enabled: face.modelData.panes.findIndex(p => p.address === root.paneAddress) > 0; onClicked: root.edit("previous", face.modelData.index, root.paneAddress) }
                             Action { text: "Later"; visible: face.modelData.panes.length > 1; enabled: face.modelData.panes.findIndex(p => p.address === root.paneAddress) < face.modelData.panes.length - 1; onClicked: root.edit("next", face.modelData.index, root.paneAddress) }
                         }
@@ -476,7 +507,7 @@ FocusScope {
                     spacing: Style.space(6)
                     Action { text: "Save as…"; onClicked: root.edit("save", root.card.active, null) }
                     Action { text: "Manage saved…"; onClicked: root.edit("manage", root.card.active, null) }
-                    Action { text: "Reopen missing apps"; visible: !!root.snapshotData.capabilities.repair && root.card && root.card.saved_names.length > 0; onClicked: root.edit("repair", root.card.active, null) }
+                    Action { text: "Reopen missing apps"; visible: !!root.snapshotData.capabilities.repair && root.card && root.card.saved_names.length > 0; enabled: !(root.card && root.card.fullscreen); tooltipText: root.card && root.card.fullscreen ? "Leave fullscreen first" : ""; onClicked: root.edit("repair", root.card.active, null) }
                 }
                 Label { Layout.fillWidth: true; text: "Live edits do not overwrite your saved arrangement. Use Manage saved to update it."; font.pixelSize: Style.font.bodySmall }
             }

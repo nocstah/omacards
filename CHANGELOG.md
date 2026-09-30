@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.2.0-rc.5 — 2026-09-30
+
+- Add **Fullscreen / Leave fullscreen** to the selected card's actions for
+  dwindle and floating cards, and show **· Fullscreen** in its summary. Float
+  card, Ungroup card and Reopen missing apps are disabled while a card is
+  fullscreen.
+- Add **Settings → Fullscreen divider** (Off, 1, 2, 3 or 4 px). The divider
+  uses the accent color unless Hyprflip's `divider_color` is set.
+- The shortcut editor lists **Fullscreen whole card** (default
+  Super+Ctrl+Alt+Return) when the guided setup provides it.
+- Pin Hyprflip to `20dddeedb514c372f203227a8f394c7a1cf8275f`, which adds whole-card fullscreen, fullscreen
+  editing, the divider settings and native-card Chill. Bridge ABI 7, helper
+  protocol 1 and the hy3 provider pin are unchanged.
+
 ## 0.2.0-rc.4 — 2026-09-26
 
 - Pin Hyprflip to `3449c39d2c11d83659589360998d3bf1756a54a0`, which adds the accent ring.
