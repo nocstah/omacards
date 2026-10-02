@@ -2,6 +2,8 @@
 
 ## 0.2.0-rc.5 — 2026-09-30
 
+- Shorten the marketplace description to 481 characters (catalog limit 500)
+  and mention fullscreen cards.
 - Add **Fullscreen / Leave fullscreen** to the selected card's actions for
   dwindle and floating cards, and show **· Fullscreen** in its summary. Float
   card, Ungroup card and Reopen missing apps are disabled while a card is
