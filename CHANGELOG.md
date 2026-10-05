@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.0-rc.6 — 2026-10-05
+
+- Pin Hyprflip to [`v0.3.0-rc.4`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.4)
+  (`2d80550226dcdb05d7895ca73a8124578a3623fe`): floating cards stay on top
+  while turning, translucent cards stay blurred during transitions, Super+J
+  flips a card face with several apps, and cards can join a chilled
+  workspace. No panel changes. Bridge ABI 7, helper protocol 1 and the hy3
+  provider pin are unchanged.
+
 ## 0.2.0-rc.5 — 2026-09-30
 
 - Shorten the marketplace description to 481 characters (catalog limit 500)
