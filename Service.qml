@@ -12,6 +12,17 @@ Scope {
     property string omarchyPath: ""
     readonly property string pluginId: "io.github.nocstah.omacards"
     readonly property string backend: Quickshell.env("OMACARDS_BACKEND") || (Quickshell.env("HOME") + "/.local/lib/hyprflip/control.py")
+    // The Hyprflip commit this OmaCards version is built and tested against.
+    // Keep it equal to the pin in README.md.
+    readonly property string hyprflipPin: "ea5f1f451ec502a133d40209d8ca37b3a6a19197"
+    readonly property string hyprflipSource: Quickshell.env("HOME") + "/.local/share/omacards/hyprflip"
+    readonly property string installer: Qt.resolvedUrl("install_hyprflip.py").toString().replace(/^file:\/\//, "")
+    // ready, missing (no helper answered), outdated (old protocol, or a
+    // recorded install that differs from the pin) or unloaded (core not loaded).
+    property string hyprflipState: "ready"
+    property var installSteps: []
+    property bool installOk: false
+    readonly property bool installing: installProcess.running
     property var snapshot: ({available: false, cards: [], saved: [], capabilities: {}})
     property var context: null
     property var owner: null
@@ -30,7 +41,7 @@ Scope {
     property bool returnToPanel: false
     property bool preserveContext: false
     property bool returning: false
-    readonly property bool busy: operationProcess.running
+    readonly property bool busy: operationProcess.running || installProcess.running
     readonly property bool refreshing: snapshotProcess.running
     readonly property var cardsHere: (snapshot.cards || []).filter(c => context && c.workspace === context.workspace)
     readonly property var currentCard: cardsHere.find(c => c.key === selectedKey) || null
@@ -56,9 +67,24 @@ Scope {
         snapshotProcess.running = true
     }
     function acceptSnapshot(raw) {
+        if (!raw.trim()) {
+            snapshot = {available: false, cards: [], saved: [], capabilities: {}}
+            hyprflipState = "missing"
+            failed = true
+            notice = "Hyprflip is not installed. Install it here; nothing needs sudo unless a build tool is missing."
+            return revealPending()
+        }
         try {
             const data = JSON.parse(raw)
-            if (data.protocol !== 1) throw new Error("Update the Hyprflip helper to use this version of OmaCards.")
+            if (data.protocol !== 1) {
+                snapshot = {available: false, cards: [], saved: [], capabilities: {}}
+                hyprflipState = "outdated"
+                failed = true
+                notice = "This OmaCards needs a newer Hyprflip. Update it here."
+                return revealPending()
+            }
+            hyprflipState = !data.available ? "unloaded"
+                : data.installed_commit && data.installed_commit !== hyprflipPin ? "outdated" : "ready"
             snapshot = data
             if (!preserveContext || !context) context = data.context
             const here = (data.cards || []).filter(c => context && c.workspace === context.workspace)
@@ -66,13 +92,17 @@ Scope {
                 const focused = here.find(c => c.faces.some(f => f.panes.some(p => p.address === (context || {}).anchor)))
                 selectedKey = focused ? focused.key : ""
             }
-            if (!data.available) { failed = true; notice = data.error || "Load Hyprflip, then refresh Cards." }
+            if (!data.available) { failed = true; notice = data.error || "Hyprflip is not loaded. Install or reinstall it here." }
         } catch (error) {
             snapshot = {available: false, cards: [], saved: [], capabilities: {}}
+            hyprflipState = "missing"
             failed = true
-            notice = "Hyprflip helper unavailable. Install the current guided setup, then refresh Cards."
+            notice = "The Hyprflip helper did not answer. Reinstall Hyprflip here, then refresh Cards."
             console.warn("[omacards] " + error)
         }
+        revealPending()
+    }
+    function revealPending() {
         if (pendingOwner) {
             const widget = pendingOwner
             pendingOwner = null
@@ -101,6 +131,33 @@ Scope {
         returnToPanel = ["edit", "manage", "transition", "duration", "preview", "shortcut", "floating", "appearance", "spacing", "accent", "divider", "fullscreen"].indexOf(action) >= 0
         operationProcess.command = ["python3", backend, "run", "--request", JSON.stringify(request)]
         operationProcess.running = true
+    }
+    // Fetch the pinned Hyprflip and run its bootstrap; progress arrives as
+    // one JSON event per line and is kept in installSteps.
+    function installHyprflip() {
+        if (busy || refreshing) return
+        installSteps = []
+        installOk = false
+        failed = false
+        notice = ""
+        installProcess.command = ["python3", installer, hyprflipPin, hyprflipSource]
+        installProcess.running = true
+    }
+    function receiveInstall(line) {
+        if (!line.trim()) return
+        try {
+            const message = JSON.parse(line)
+            if (message.event === "step") {
+                const steps = installSteps.filter(s => s.id !== message.id)
+                const index = installSteps.findIndex(s => s.id === message.id)
+                steps.splice(index < 0 ? steps.length : index, 0, message)
+                installSteps = steps
+            } else if (message.event === "done") {
+                installOk = message.ok === true
+            }
+        } catch (error) {
+            console.warn("[omacards] installer: " + error)
+        }
     }
     function cardAction(action, extra) {
         if (!currentCard) return
@@ -161,6 +218,19 @@ Scope {
             notice = "The helper returned an unreadable response. Refresh Cards."
             cancel()
             console.warn("[omacards] " + error)
+        }
+    }
+    Process {
+        id: installProcess
+        stdout: SplitParser { onRead: data => root.receiveInstall(data) }
+        stderr: StdioCollector { id: installErrors; waitForEnd: true }
+        onExited: (exitCode, exitStatus) => {
+            const failure = root.installSteps.find(s => s.status === "failed")
+            root.failed = !root.installOk
+            root.notice = root.installOk ? "Hyprflip is installed. Your open cards were kept."
+                : failure ? failure.title + " failed." : "Installing Hyprflip stopped unexpectedly."
+            if (!root.installOk) console.warn("[omacards] installer exit " + exitCode + ": " + installErrors.text.slice(0, 2000))
+            Qt.callLater(function() { root.refresh(false) })
         }
     }
     Process {

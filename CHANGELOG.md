@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.2.0-rc.7 — 2026-10-06
+
+- Install or update Hyprflip from the panel. When Hyprflip is missing, has an
+  older helper protocol, is not loaded, or a recorded install differs from the
+  pin, Cards offers **Install Hyprflip** or **Update Hyprflip**. The new
+  `install_hyprflip.py` fetches the exact pinned commit into
+  `~/.local/share/omacards/hyprflip`, verifies it, and runs Hyprflip's
+  `scripts/bootstrap.py --json`. Each step and any fix command (such as the
+  `pacman` line for a missing build tool) appear in the panel. Nothing runs
+  with sudo, and a checkout with local changes is left alone.
+- Pin Hyprflip to [`v0.3.0-rc.5`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.5)
+  (`ea5f1f451ec502a133d40209d8ca37b3a6a19197`): updates keep open cards, the
+  one-command bootstrap, and Find in fullscreen cards. Bridge ABI 7, helper
+  protocol 1 and the hy3 provider pin are unchanged.
+
 ## 0.2.0-rc.6 — 2026-10-05
 
 - Pin Hyprflip to [`v0.3.0-rc.4`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.4)

@@ -9,7 +9,7 @@ ShellRoot {
     id: harness
     property int step: 0
     property var original: null
-    property var shots: ["cards", "settings", "preferences-narrow", "preferences-light", "preferences-dark", "preferences-scaled", "shortcuts", "shortcut-record", "shortcut-conflict", "settings-narrow", "settings-scaled", "edit", "motion", "question", "empty", "narrow", "scaled", "light", "dark", "pane-edit", "library-ungrouped", "no-front", "unselected-card", "long-front", "scaled-entry"]
+    property var shots: ["cards", "settings", "preferences-narrow", "preferences-light", "preferences-dark", "preferences-scaled", "shortcuts", "shortcut-record", "shortcut-conflict", "settings-narrow", "settings-scaled", "edit", "motion", "question", "empty", "narrow", "scaled", "light", "dark", "pane-edit", "library-ungrouped", "no-front", "unselected-card", "long-front", "scaled-entry", "install-missing", "install-progress", "outdated"]
     function findItem(item, name) {
         if (item.objectName === name) return item
         for (const child of item.children || []) { const found = findItem(child, name); if (found) return found }
@@ -83,6 +83,23 @@ ShellRoot {
                 }
                 if (next === "edit") {window.width=468;window.height=700;Style.spacingScale=1;Style.fontBaseSize=12}
                 if (next === "question") service.question = {id: 1, mode: "select", prompt: "Choose an app for the back · Gmail stays on the front", choices: [{value: "a", label: "WhatsApp", detail: "Workspace 2"}, {value: "b", label: "Telegram", detail: "Workspace 2"}, {value: "w", label: "Add from workspace 5", detail: "Move an app here"}]}
+                service.installSteps = []
+                service.hyprflipState = "ready"
+                service.failed = false
+                service.notice = ""
+                if (next === "install-missing" || next === "install-progress") {
+                    service.snapshot = {available: false, cards: [], saved: [], capabilities: {}}
+                    service.hyprflipState = "missing"
+                    service.failed = true
+                    service.notice = "Hyprflip is not installed. Install it here; nothing needs sudo unless a build tool is missing."
+                }
+                if (next === "install-progress") {
+                    service.notice = "Check prerequisites failed."
+                    service.installSteps = [
+                        {event: "step", id: "download", title: "Download the pinned Hyprflip release", status: "ok", detail: "Hyprflip v0.3.0-rc.5"},
+                        {event: "step", id: "check", title: "Check prerequisites", status: "failed", detail: "Missing ninja, lua5.4", fix: "sudo pacman -S --needed lua ninja"}]
+                }
+                if (next === "outdated") service.hyprflipState = "outdated"
                 if (next === "empty") { const data = JSON.parse(JSON.stringify(harness.original)); data.cards = []; data.saved = []; service.snapshot = data }
                 if (next === "narrow") { window.width = 340; window.height = 550 }
                 if (next === "scaled") { window.width = 540; window.height = 800; Style.spacingScale = 1.25; Style.fontBaseSize = 15 }

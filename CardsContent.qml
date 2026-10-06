@@ -104,7 +104,66 @@ FocusScope {
             }
             RowLayout {
                 visible: !root.busy && (!root.snapshotData.available || (root.service && root.service.failed))
+                Action {
+                    objectName: "installHyprflip"
+                    text: root.service && root.service.hyprflipState === "outdated" ? "Update Hyprflip" : "Install Hyprflip"
+                    visible: root.service && root.service.hyprflipState !== "ready"
+                    enabled: root.service && !root.service.refreshing
+                    onClicked: root.service.installHyprflip()
+                }
                 Action { text: root.service && root.service.refreshing ? "Refreshing…" : "Refresh Cards"; enabled: root.service && !root.service.refreshing; onClicked: root.service.refresh(true) }
+            }
+            // Cards still work, but OmaCards is paired with a different Hyprflip.
+            RowLayout {
+                Layout.fillWidth: true
+                visible: !root.busy && root.snapshotData.available && root.service && root.service.hyprflipState === "outdated" && !root.service.failed && root.page === "cards"
+                Label { Layout.fillWidth: true; text: "A newer Hyprflip is paired with this OmaCards."; wrapMode: Text.WordWrap; color: Color.popups.text; opacity: 0.75 }
+                Action { text: "Update Hyprflip"; onClicked: root.service.installHyprflip() }
+            }
+            // Installer progress: one row per step, kept after it finishes.
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: Style.space(6)
+                visible: root.service && root.service.installSteps.length > 0
+                Repeater {
+                    model: root.service ? root.service.installSteps : []
+                    delegate: RowLayout {
+                        required property var modelData
+                        Layout.fillWidth: true
+                        spacing: Style.space(8)
+                        Label {
+                            Layout.alignment: Qt.AlignTop
+                            text: modelData.status === "ok" ? "✓" : modelData.status === "failed" ? "✗" : "…"
+                            color: modelData.status === "failed" ? Color.urgent : modelData.status === "ok" ? Color.accent : Color.popups.text
+                            font.bold: true
+                        }
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: Style.space(2)
+                            Label { Layout.fillWidth: true; text: modelData.title; wrapMode: Text.WordWrap; font.bold: modelData.status === "running" }
+                            Label {
+                                Layout.fillWidth: true
+                                visible: !!modelData.detail
+                                text: modelData.detail || ""
+                                wrapMode: Text.WrapAnywhere
+                                color: modelData.status === "failed" ? Color.urgent : Color.popups.text
+                                opacity: modelData.status === "failed" ? 1 : 0.75
+                                font.pixelSize: Style.font.bodySmall
+                            }
+                            TextEdit {
+                                Layout.fillWidth: true
+                                visible: !!modelData.fix
+                                text: modelData.fix || ""
+                                readOnly: true
+                                selectByMouse: true
+                                wrapMode: TextEdit.WrapAnywhere
+                                color: Color.popups.text
+                                font.family: "monospace"
+                                font.pixelSize: Style.font.bodySmall
+                            }
+                        }
+                    }
+                }
             }
 
             // Every backend question is displayed here, keeping a single UI flow.
@@ -494,9 +553,9 @@ FocusScope {
                             spacing: Style.space(4)
                             visible: face.showing
                             Action { text: face.modelData.panes.length >= root.snapshotData.capabilities.max_panes ? "Side full" : "Add app…"; enabled: face.modelData.panes.length < root.snapshotData.capabilities.max_panes; onClicked: root.edit("add", face.modelData.index, null) }
-                            Action { text: "Beside"; visible: face.modelData.panes.length > 1; enabled: root.snapshotData.capabilities.layout; selected: face.modelData.axis === "horizontal"; onClicked: root.edit("horizontal", face.modelData.index, null) }
-                            Action { text: "Stacked"; visible: face.modelData.panes.length > 1; enabled: root.snapshotData.capabilities.layout; selected: face.modelData.axis === "vertical"; onClicked: root.edit("vertical", face.modelData.index, null) }
-                            Action { text: "Equal sizes"; visible: face.modelData.panes.length > 1; enabled: root.snapshotData.capabilities.layout; onClicked: root.edit("balance", face.modelData.index, null) }
+                            Action { text: "Beside"; visible: face.modelData.panes.length > 1; enabled: root.snapshotData.capabilities.layout === true; selected: face.modelData.axis === "horizontal"; onClicked: root.edit("horizontal", face.modelData.index, null) }
+                            Action { text: "Stacked"; visible: face.modelData.panes.length > 1; enabled: root.snapshotData.capabilities.layout === true; selected: face.modelData.axis === "vertical"; onClicked: root.edit("vertical", face.modelData.index, null) }
+                            Action { text: "Equal sizes"; visible: face.modelData.panes.length > 1; enabled: root.snapshotData.capabilities.layout === true; onClicked: root.edit("balance", face.modelData.index, null) }
                         }
                         Action { text: "Show and edit " + (face.modelData.index === 0 ? "Front" : "Back"); visible: !face.showing; onClicked: root.edit("", face.modelData.index, null) }
                     }
