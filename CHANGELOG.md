@@ -10,9 +10,9 @@
   `scripts/bootstrap.py --json`. Each step and any fix command (such as the
   `pacman` line for a missing build tool) appear in the panel. Nothing runs
   with sudo, and a checkout with local changes is left alone.
-- Pin Hyprflip to [`v0.3.0-rc.5`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.5)
-  (`ea5f1f451ec502a133d40209d8ca37b3a6a19197`): updates keep open cards, the
-  one-command bootstrap, and Find in fullscreen cards. Bridge ABI 7, helper
+- Pin Hyprflip to [`v0.3.0-rc.6`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.6)
+  (`2a71872bd57d029e1734befef86ddc89a6b3d20e`): updates keep open cards in
+  place, the one-command bootstrap, and Find in fullscreen cards. Bridge ABI 7, helper
   protocol 1 and the hy3 provider pin are unchanged.
 
 ## 0.2.0-rc.6 — 2026-10-05
