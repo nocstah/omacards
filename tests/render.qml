@@ -9,7 +9,7 @@ ShellRoot {
     id: harness
     property int step: 0
     property var original: null
-    property var shots: ["cards", "settings", "preferences-narrow", "preferences-light", "preferences-dark", "preferences-scaled", "shortcuts", "shortcut-record", "shortcut-conflict", "settings-narrow", "settings-scaled", "edit", "motion", "question", "empty", "narrow", "scaled", "light", "dark", "pane-edit", "library-ungrouped", "no-front", "unselected-card", "long-front", "scaled-entry", "install-missing", "install-progress", "outdated"]
+    property var shots: ["cards", "settings", "preferences-narrow", "preferences-light", "preferences-dark", "preferences-scaled", "shortcuts", "shortcut-record", "shortcut-conflict", "settings-narrow", "settings-scaled", "edit", "motion", "question", "empty", "narrow", "scaled", "light", "dark", "pane-edit", "library-ungrouped", "no-front", "unselected-card", "long-front", "scaled-entry", "install-missing", "install-progress", "install-waiting", "outdated"]
     function findItem(item, name) {
         if (item.objectName === name) return item
         for (const child of item.children || []) { const found = findItem(child, name); if (found) return found }
@@ -87,17 +87,23 @@ ShellRoot {
                 service.hyprflipState = "ready"
                 service.failed = false
                 service.notice = ""
-                if (next === "install-missing" || next === "install-progress") {
+                service.missingPackages = []
+                service.awaitingPackages = false
+                if (next === "install-missing" || next === "install-progress" || next === "install-waiting") {
                     service.snapshot = {available: false, cards: [], saved: [], capabilities: {}}
                     service.hyprflipState = "missing"
                     service.failed = true
-                    service.notice = "Hyprflip is not installed. Install it here; nothing needs sudo unless a build tool is missing."
+                    service.notice = "Hyprflip is not installed. Install it here; if build tools are missing, OmaCards opens a terminal to install them."
                 }
-                if (next === "install-progress") {
-                    service.notice = "Check prerequisites failed."
+                if (next === "install-progress" || next === "install-waiting") {
                     service.installSteps = [
-                        {event: "step", id: "download", title: "Download the pinned Hyprflip release", status: "ok", detail: "Hyprflip v0.3.0-rc.5"},
-                        {event: "step", id: "check", title: "Check prerequisites", status: "failed", detail: "Missing ninja, lua5.4", fix: "sudo pacman -S --needed lua ninja"}]
+                        {event: "step", id: "download", title: "Download the pinned Hyprflip release", status: "ok", detail: "Hyprflip v0.3.0-rc.6"},
+                        {event: "step", id: "check", title: "Check prerequisites", status: "failed", detail: "Missing cmake, ninja", fix: "sudo pacman -S --needed cmake ninja"}]
+                    service.missingPackages = service.packagesFrom(service.installSteps[1].fix)
+                    service.awaitingPackages = next === "install-waiting"
+                    if (service.missingPackages.join(" ") !== "cmake ninja") console.error("packagesFrom rejected the bootstrap fix")
+                    if (service.packagesFrom("sudo pacman -S --needed cmake; reboot").length || service.packagesFrom("sudo pacman -S --needed evil").length)
+                        console.error("packagesFrom accepted an unexpected command")
                 }
                 if (next === "outdated") service.hyprflipState = "outdated"
                 if (next === "empty") { const data = JSON.parse(JSON.stringify(harness.original)); data.cards = []; data.saved = []; service.snapshot = data }

@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.0-rc.8 — 2026-10-07
+
+- Install missing build tools from the panel. A stock Omarchy system lacks
+  CMake and Ninja, so a first install used to stop at **Check prerequisites**.
+  When Hyprflip's bootstrap reports missing build packages, Cards now offers
+  **Install build tools**, which opens Omarchy's floating terminal running
+  `omarchy-pkg-add` for exactly those packages. Only Hyprflip's known build
+  packages are accepted. While the panel is open, it checks with `pacman -Q`
+  and installs Hyprflip once they are in. OmaCards itself still never runs
+  sudo. The Hyprflip pin is unchanged.
+
 ## 0.2.0-rc.7 — 2026-10-06
 
 - Install or update Hyprflip from the panel. When Hyprflip is missing, has an

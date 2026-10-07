@@ -22,6 +22,11 @@ Scope {
     property string hyprflipState: "ready"
     property var installSteps: []
     property bool installOk: false
+    // Build packages Hyprflip's bootstrap reported missing. Only these names
+    // may be installed, through Omarchy's own terminal and package helper.
+    readonly property var buildPackages: ["cmake", "ninja", "pkgconf", "gcc", "git", "python", "lua", "libglvnd"]
+    property var missingPackages: []
+    property bool awaitingPackages: false
     readonly property bool installing: installProcess.running
     property var snapshot: ({available: false, cards: [], saved: [], capabilities: {}})
     property var context: null
@@ -71,7 +76,7 @@ Scope {
             snapshot = {available: false, cards: [], saved: [], capabilities: {}}
             hyprflipState = "missing"
             failed = true
-            notice = "Hyprflip is not installed. Install it here; nothing needs sudo unless a build tool is missing."
+            notice = "Hyprflip is not installed. Install it here; if build tools are missing, OmaCards opens a terminal to install them."
             return revealPending()
         }
         try {
@@ -138,6 +143,8 @@ Scope {
         if (busy || refreshing) return
         installSteps = []
         installOk = false
+        missingPackages = []
+        awaitingPackages = false
         failed = false
         notice = ""
         installProcess.command = ["python3", installer, hyprflipPin, hyprflipSource]
@@ -152,12 +159,27 @@ Scope {
                 const index = installSteps.findIndex(s => s.id === message.id)
                 steps.splice(index < 0 ? steps.length : index, 0, message)
                 installSteps = steps
+                if (message.status === "failed") missingPackages = packagesFrom(message.fix || "")
             } else if (message.event === "done") {
                 installOk = message.ok === true
             }
         } catch (error) {
             console.warn("[omacards] installer: " + error)
         }
+    }
+    function packagesFrom(fix) {
+        const match = /^sudo pacman -S --needed ([a-z0-9 ]+)$/.exec(fix)
+        const names = match ? match[1].split(" ") : []
+        return names.length > 0 && names.every(n => buildPackages.indexOf(n) >= 0) ? names : []
+    }
+    // The password is typed in a visible Omarchy terminal; OmaCards itself
+    // never runs sudo. The launcher returns at once, so watch for the result.
+    function installPackages() {
+        if (busy || missingPackages.length === 0) return
+        packageLauncher.command = ["omarchy-launch-floating-terminal-with-presentation", "omarchy-pkg-add " + missingPackages.join(" ")]
+        packageLauncher.running = true
+        awaitingPackages = true
+        packageDeadline.restart()
     }
     function cardAction(action, extra) {
         if (!currentCard) return
@@ -232,6 +254,31 @@ Scope {
             if (!root.installOk) console.warn("[omacards] installer exit " + exitCode + ": " + installErrors.text.slice(0, 2000))
             Qt.callLater(function() { root.refresh(false) })
         }
+    }
+    Process { id: packageLauncher }
+    Process {
+        id: packageCheck
+        onExited: (exitCode, exitStatus) => {
+            if (exitCode !== 0 || !root.awaitingPackages || root.refreshing) return
+            root.awaitingPackages = false
+            packageDeadline.stop()
+            root.installHyprflip()
+        }
+    }
+    // Only while the panel is open and waiting on the terminal.
+    Timer {
+        interval: 2000
+        repeat: true
+        running: root.awaitingPackages && root.owner !== null && root.owner.opened && !root.busy
+        onTriggered: if (!packageCheck.running) {
+            packageCheck.command = ["pacman", "-Q"].concat(root.missingPackages)
+            packageCheck.running = true
+        }
+    }
+    Timer {
+        id: packageDeadline
+        interval: 600000
+        onTriggered: root.awaitingPackages = false
     }
     Process {
         id: snapshotProcess

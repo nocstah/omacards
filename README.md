@@ -113,7 +113,7 @@ does not update the compositor libraries.
 
 ## Requirements
 
-This is the **0.2.0-rc.7 preview**, paired with Hyprflip 0.3.0-rc.6.
+This is the **0.2.0-rc.8 preview**, paired with Hyprflip 0.3.0-rc.6.
 
 - Omarchy 4's stock Quickshell bar; tested with 4.0.4.
 - Hyprflip at **`2a71872bd57d029e1734befef86ddc89a6b3d20e`** (bridge ABI 7),
@@ -129,9 +129,16 @@ Open Cards in the bar. If Hyprflip is missing, outdated or not loaded, the panel
 shows **Install Hyprflip** or **Update Hyprflip**. It fetches the exact commit
 below into `~/.local/share/omacards/hyprflip`, verifies it, and runs Hyprflip's
 `scripts/bootstrap.py`, which checks the prerequisites, builds, self-tests and
-installs the core and helper. Each step appears in the panel. Nothing it runs
-uses sudo: if a build tool is missing, the panel shows the `pacman` command to
-run, then try again. Open dwindle and floating cards stay open through updates.
+installs the core and helper. Each step appears in the panel.
+
+A stock Omarchy system lacks two build tools, CMake and Ninja. When the
+bootstrap reports missing build packages, the panel offers **Install build
+tools**. That opens Omarchy's floating terminal running
+`omarchy-pkg-add <packages>`, where you approve the install with your
+password. Only Hyprflip's known build packages (`cmake`, `ninja`, `pkgconf`,
+`gcc`, `git`, `python`, `lua`, `libglvnd`) are ever passed. While the panel is
+open, it checks with `pacman -Q`, then installs Hyprflip as soon as they are
+in. OmaCards itself never runs sudo. Open dwindle and floating cards stay open through updates.
 The panel offers an update only when an install it recorded differs from this
 pin. The manual steps below remain available.
 

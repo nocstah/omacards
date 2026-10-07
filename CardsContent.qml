@@ -120,6 +120,24 @@ FocusScope {
                 Label { Layout.fillWidth: true; text: "A newer Hyprflip is paired with this OmaCards."; wrapMode: Text.WordWrap; color: Color.popups.text; opacity: 0.75 }
                 Action { text: "Update Hyprflip"; onClicked: root.service.installHyprflip() }
             }
+            // The bootstrap stopped on missing build packages; install them in a terminal.
+            RowLayout {
+                Layout.fillWidth: true
+                visible: !root.busy && root.service && root.service.missingPackages.length > 0
+                Label {
+                    Layout.fillWidth: true
+                    text: root.service && root.service.awaitingPackages
+                        ? "Enter your password in the terminal. Hyprflip installs once " + root.service.missingPackages.join(", ") + " are in."
+                        : "Hyprflip needs " + (root.service ? root.service.missingPackages.join(", ") : "") + " to build."
+                    wrapMode: Text.WordWrap
+                    color: Color.popups.text
+                }
+                Action {
+                    objectName: "installPackages"
+                    text: root.service && root.service.awaitingPackages ? "Open terminal again" : "Install build tools"
+                    onClicked: root.service.installPackages()
+                }
+            }
             // Installer progress: one row per step, kept after it finishes.
             ColumnLayout {
                 Layout.fillWidth: true
