@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.0-rc.9 — 2026-10-09
+
+- Pin Hyprflip to [`v0.3.0-rc.7`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.7)
+  (`247cf5112cf4b95f017e6768615282ab8db52467`): tiled cards keep their
+  `gaps_in`, faces turn at full opacity with themes that dim inactive
+  windows, and glass faces stay frosted while they flip. No panel changes.
+  Bridge ABI 7, helper protocol 1 and the hy3 provider pin are unchanged.
+
 ## 0.2.0-rc.8 — 2026-10-07
 
 - Install missing build tools from the panel. A stock Omarchy system lacks
