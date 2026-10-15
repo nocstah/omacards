@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.0-rc.10 — 2026-10-15
+
+- Pin Hyprflip to [`v0.3.0-rc.8`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.8)
+  (`e9587c60d72e658f023edc3531da6472ab0e88d7`): every app of a face turns
+  during a flip again (since rc.7 only one did, the others hidden behind a
+  blur), and Super+G on a floating card no longer aborts Hyprland. No panel
+  changes. Bridge ABI 7, helper protocol 1 and the hy3 provider pin are
+  unchanged.
+
 ## 0.2.0-rc.9 — 2026-10-09
 
 - Pin Hyprflip to [`v0.3.0-rc.7`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.7)
