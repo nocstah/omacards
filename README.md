@@ -113,7 +113,7 @@ does not update the compositor libraries.
 
 ## Requirements
 
-This is the **0.2.0-rc.10 preview**, paired with Hyprflip 0.3.0-rc.8.
+This is the **0.2.0-rc.11 preview**, paired with Hyprflip 0.3.0-rc.8.
 
 - Omarchy 4's stock Quickshell bar; tested with 4.0.4.
 - Hyprflip at **`e9587c60d72e658f023edc3531da6472ab0e88d7`** (bridge ABI 7),

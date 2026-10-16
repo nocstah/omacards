@@ -189,7 +189,7 @@ FocusScope {
                 Layout.fillWidth: true
                 visible: root.question !== null
                 Label { Layout.fillWidth: true; text: root.question ? root.question.prompt : ""; font.bold: true }
-                Ui.TextField {
+                KeyField {
                     id: nameInput
                     Layout.fillWidth: true
                     visible: root.question !== null && root.question.mode === "input"
@@ -296,7 +296,7 @@ FocusScope {
                     visible: root.hasSavedCards || root.card !== null || !!root.snapshotData.library_error
                     Label { text: "Saved cards"; font.bold: true }
                     Label { text: root.snapshotData.library_error || ""; visible: text.length > 0; color: Color.urgent; Layout.fillWidth: true }
-                    Ui.TextField {
+                    KeyField {
                         id: search
                         Layout.fillWidth: true
                         visible: root.hasSavedCards
@@ -629,11 +629,12 @@ FocusScope {
                 }
                 RowLayout {
                     visible: root.advanced
-                    Ui.TextField {
+                    KeyField {
                         id: duration
                         Layout.fillWidth: true
                         text: String(root.snapshotData.duration_ms === undefined ? 420 : root.snapshotData.duration_ms)
                         validator: IntValidator { bottom: 0; top: 2000 }
+                        inputMethodHints: Qt.ImhDigitsOnly
                         Accessible.name: "Transition duration in milliseconds, 0 to 2000"
                         onAccepted: if (acceptableInput) root.service.run("duration", {duration_ms: Number(text)})
                     }

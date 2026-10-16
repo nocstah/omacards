@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.0-rc.11 — 2026-10-16
+
+- Text fields no longer read the clipboard. Qt's editable text inputs fetch
+  the clipboard's text every time any app copies, even while hidden, so a
+  clipboard owner that streams endlessly could stall the shell. The card name,
+  saved-card search and exact-duration fields are now read-only Qt inputs that
+  take text only from typed keys: no clipboard reads and no paste. Hyprflip pin,
+  bridge ABI 7 and helper protocol 1 are unchanged.
+
 ## 0.2.0-rc.10 — 2026-10-15
 
 - Pin Hyprflip to [`v0.3.0-rc.8`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.8)
