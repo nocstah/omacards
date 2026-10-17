@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.0-rc.12 — 2026-10-17
+
+- Pin Hyprflip to [`v0.3.0-rc.9`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.9)
+  (`52322ae08ab4a7c1676a81fcf34942000b2c99be`): window titles no longer reach
+  command lines. Its Omarchy-menu app pickers sent every candidate window's
+  title as an `omarchy-shell` argument, readable by other local users; rows
+  now show the app, workspace and status, and two windows of the same app are
+  numbered. `HYPRFLIP_MENU_TITLES=1` brings titles back on a single-user
+  computer. Opening a saved card also completes an open card that holds part
+  of it. Bridge ABI 7 and helper protocol 1 are unchanged.
+
 ## 0.2.0-rc.11 — 2026-10-16
 
 - Text fields no longer read the clipboard. Qt's editable text inputs fetch
