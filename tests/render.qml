@@ -1,8 +1,10 @@
+//@ pragma OmarchyLoadPatch
 import QtQuick
 import QtQuick.Window
 import Quickshell
 import Quickshell.Io
 import qs.Commons
+import qs.Commons as Commons
 import "Cards" as Cards
 
 ShellRoot {
@@ -31,10 +33,10 @@ ShellRoot {
         visible: true
         width: 468
         height: 700
-        color: Color.popups.background
+        color: Commons.Color.popups.background
         Rectangle {
             id: area
-            color: Color.popups.background
+            color: Commons.Color.popups.background
             anchors.fill: parent
             Cards.CardsContent { id: content; anchors.fill: parent; anchors.margins: 14; service: service }
         }
@@ -63,11 +65,11 @@ ShellRoot {
                     window.height = next === "preferences-narrow" ? 550 : next === "preferences-scaled" ? 1400 : 700
                     Style.spacingScale = next === "preferences-scaled" ? 2 : 1
                     Style.fontBaseSize = next === "preferences-scaled" ? 24 : 12
-                    Color.shellValues = ({})
-                    Color.background = next === "preferences-dark" ? "#1c2026" : "#faf8f3"
-                    Color.foreground = next === "preferences-dark" ? "#e6e9ef" : "#242424"
-                    Color.accent = next === "preferences-dark" ? "#a9bfff" : "#2255aa"
-                    Color.muted = next === "preferences-dark" ? "#9ba6b5" : "#666666"
+                    Commons.Color.shellValues = ({})
+                    Commons.Color.background = next === "preferences-dark" ? "#1c2026" : "#faf8f3"
+                    Commons.Color.foreground = next === "preferences-dark" ? "#e6e9ef" : "#242424"
+                    Commons.Color.accent = next === "preferences-dark" ? "#a9bfff" : "#2255aa"
+                    Commons.Color.muted = next === "preferences-dark" ? "#9ba6b5" : "#666666"
                 }
                 if (next === "shortcuts") {window.width=468;window.height=700;Style.spacingScale=1;Style.fontBaseSize=12}
                 if (["shortcut-record", "shortcut-conflict", "settings-narrow", "settings-scaled"].includes(next)) {
@@ -109,8 +111,8 @@ ShellRoot {
                 if (next === "empty") { const data = JSON.parse(JSON.stringify(harness.original)); data.cards = []; data.saved = []; service.snapshot = data }
                 if (next === "narrow") { window.width = 340; window.height = 550 }
                 if (next === "scaled") { window.width = 540; window.height = 800; Style.spacingScale = 1.25; Style.fontBaseSize = 15 }
-                if (next === "light") { Style.spacingScale = 1; Style.fontBaseSize = 12; window.width = 468; window.height = 700; Color.shellValues = ({}); Color.background = "#faf8f3"; Color.foreground = "#242424"; Color.accent = "#2255aa"; Color.muted = "#666666" }
-                if (next === "dark") { Color.shellValues = ({}); Color.background = "#1c2026"; Color.foreground = "#e6e9ef"; Color.accent = "#a9bfff"; Color.muted = "#9ba6b5" }
+                if (next === "light") { Style.spacingScale = 1; Style.fontBaseSize = 12; window.width = 468; window.height = 700; Commons.Color.shellValues = ({}); Commons.Color.background = "#faf8f3"; Commons.Color.foreground = "#242424"; Commons.Color.accent = "#2255aa"; Commons.Color.muted = "#666666" }
+                if (next === "dark") { Commons.Color.shellValues = ({}); Commons.Color.background = "#1c2026"; Commons.Color.foreground = "#e6e9ef"; Commons.Color.accent = "#a9bfff"; Commons.Color.muted = "#9ba6b5" }
                 if (["library-ungrouped", "no-front", "unselected-card", "long-front", "scaled-entry"].includes(next)) {
                     const data = JSON.parse(JSON.stringify(harness.original))
                     data.context.anchor = "0xd"
@@ -126,8 +128,8 @@ ShellRoot {
                     Style.fontBaseSize = next === "scaled-entry" ? 24 : 12
                     window.width = next === "scaled-entry" ? 936 : next === "long-front" ? 340 : 468
                     window.height = next === "scaled-entry" ? 1400 : 700
-                    Color.shellValues = ({})
-                    Color.background = "#faf8f3"; Color.foreground = "#242424"; Color.accent = "#2255aa"; Color.muted = "#666666"
+                    Commons.Color.shellValues = ({})
+                    Commons.Color.background = "#faf8f3"; Commons.Color.foreground = "#242424"; Commons.Color.accent = "#2255aa"; Commons.Color.muted = "#666666"
                 }
                 if (next === "pane-edit") { service.page = "edit"; const d = JSON.parse(JSON.stringify(harness.original)); d.cards[0].active = 1; d.cards[0].current = "0xb"; service.snapshot = d; content.paneCardKey = "container:1"; content.paneAddress = "0xc"; window.height = 780 }
             })

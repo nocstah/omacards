@@ -3,6 +3,7 @@ import QtQuick.Window
 import QtQuick.Layouts
 import QtQuick.Controls as Controls
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui as Ui
 
 FocusScope {
@@ -100,7 +101,7 @@ FocusScope {
                 Layout.fillWidth: true
                 text: root.service ? root.service.notice : "Starting OmaCards…"
                 visible: text.length > 0
-                color: root.service && root.service.failed ? Color.urgent : Color.popups.text
+                color: root.service && root.service.failed ? Commons.Color.urgent : Commons.Color.popups.text
             }
             RowLayout {
                 visible: !root.busy && (!root.snapshotData.available || (root.service && root.service.failed))
@@ -117,7 +118,7 @@ FocusScope {
             RowLayout {
                 Layout.fillWidth: true
                 visible: !root.busy && root.snapshotData.available && root.service && root.service.hyprflipState === "outdated" && !root.service.failed && root.page === "cards"
-                Label { Layout.fillWidth: true; text: "A newer Hyprflip is paired with this OmaCards."; wrapMode: Text.WordWrap; color: Color.popups.text; opacity: 0.75 }
+                Label { Layout.fillWidth: true; text: "A newer Hyprflip is paired with this OmaCards."; wrapMode: Text.WordWrap; color: Commons.Color.popups.text; opacity: 0.75 }
                 Action { text: "Update Hyprflip"; onClicked: root.service.installHyprflip() }
             }
             // The bootstrap stopped on missing build packages; install them in a terminal.
@@ -130,7 +131,7 @@ FocusScope {
                         ? "Enter your password in the terminal. Hyprflip installs once " + root.service.missingPackages.join(", ") + " are in."
                         : "Hyprflip needs " + (root.service ? root.service.missingPackages.join(", ") : "") + " to build."
                     wrapMode: Text.WordWrap
-                    color: Color.popups.text
+                    color: Commons.Color.popups.text
                 }
                 Action {
                     objectName: "installPackages"
@@ -152,7 +153,7 @@ FocusScope {
                         Label {
                             Layout.alignment: Qt.AlignTop
                             text: modelData.status === "ok" ? "✓" : modelData.status === "failed" ? "✗" : "…"
-                            color: modelData.status === "failed" ? Color.urgent : modelData.status === "ok" ? Color.accent : Color.popups.text
+                            color: modelData.status === "failed" ? Commons.Color.urgent : modelData.status === "ok" ? Commons.Color.accent : Commons.Color.popups.text
                             font.bold: true
                         }
                         ColumnLayout {
@@ -164,7 +165,7 @@ FocusScope {
                                 visible: !!modelData.detail
                                 text: modelData.detail || ""
                                 wrapMode: Text.WrapAnywhere
-                                color: modelData.status === "failed" ? Color.urgent : Color.popups.text
+                                color: modelData.status === "failed" ? Commons.Color.urgent : Commons.Color.popups.text
                                 opacity: modelData.status === "failed" ? 1 : 0.75
                                 font.pixelSize: Style.font.bodySmall
                             }
@@ -175,7 +176,7 @@ FocusScope {
                                 readOnly: true
                                 selectByMouse: true
                                 wrapMode: TextEdit.WrapAnywhere
-                                color: Color.popups.text
+                                color: Commons.Color.popups.text
                                 font.family: "monospace"
                                 font.pixelSize: Style.font.bodySmall
                             }
@@ -273,7 +274,7 @@ FocusScope {
                             Layout.fillWidth: true
                             Label { text: modelData.index === 0 ? "Front" : "Back"; Layout.preferredWidth: Style.space(48); font.bold: root.card && root.card.active === modelData.index }
                             Label { text: modelData.panes.map(p => p.label).join(" · "); Layout.fillWidth: true }
-                            Label { text: "Showing"; visible: root.card && (root.card.active === modelData.index || root.card.unfolded); color: Color.accent; font.pixelSize: Style.font.bodySmall }
+                            Label { text: "Showing"; visible: root.card && (root.card.active === modelData.index || root.card.unfolded); color: Commons.Color.accent; font.pixelSize: Style.font.bodySmall }
                         }
                     }
                     Flow {
@@ -295,7 +296,7 @@ FocusScope {
                     spacing: Style.space(8)
                     visible: root.hasSavedCards || root.card !== null || !!root.snapshotData.library_error
                     Label { text: "Saved cards"; font.bold: true }
-                    Label { text: root.snapshotData.library_error || ""; visible: text.length > 0; color: Color.urgent; Layout.fillWidth: true }
+                    Label { text: root.snapshotData.library_error || ""; visible: text.length > 0; color: Commons.Color.urgent; Layout.fillWidth: true }
                     KeyField {
                         id: search
                         Layout.fillWidth: true
@@ -532,14 +533,14 @@ FocusScope {
                                         width: stacked ? parent.width : (parent.width - Style.space(2) * (count - 1)) / count
                                         height: stacked ? (parent.height - Style.space(2) * (count - 1)) / count : parent.height
                                         color: "transparent"
-                                        border.color: face.showing ? Color.accent : Color.popups.text
+                                        border.color: face.showing ? Commons.Color.accent : Commons.Color.popups.text
                                         border.width: 1
                                         radius: Math.min(Style.cornerRadius, Style.space(2))
                                     }
                                 }
                             }
                             Label { text: face.modelData.panes.length + " / " + (root.snapshotData.capabilities.max_panes || 3) + " apps" }
-                            Label { text: "Showing"; visible: face.showing; color: Color.accent }
+                            Label { text: "Showing"; visible: face.showing; color: Commons.Color.accent }
                         }
                         Repeater {
                             model: face.modelData.panes
@@ -594,7 +595,7 @@ FocusScope {
                 Layout.fillWidth: true
                 spacing: Style.space(8)
                 Label { text: "Choose a transition. Preview turns the card over and back without changing your preference."; Layout.fillWidth: true }
-                Label { text: "Animations are disabled in Hyprland or Hyprflip. Your choice is saved for when they are enabled."; Layout.fillWidth: true; visible: root.snapshotData.motion_enabled === false; color: Color.accent }
+                Label { text: "Animations are disabled in Hyprland or Hyprflip. Your choice is saved for when they are enabled."; Layout.fillWidth: true; visible: root.snapshotData.motion_enabled === false; color: Commons.Color.accent }
                 Repeater {
                     model: root.snapshotData.transition_modes || []
                     RowLayout {
