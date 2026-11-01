@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.2.0-rc.13 — 2026-11-01
+
+- Pin Hyprflip to [`v0.3.0-rc.10`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.10)
+  (`651aee31dd42007569252192bfb4a4cd6ba6e424`): other programs can drive a
+  card by its id without taking the focus, and park a native card on a special
+  workspace, where Find leaves it out. A card turned while the focus is
+  elsewhere gets its resting opacity back. Bridge ABI 7 and helper protocol 1
+  are unchanged.
+- The panel keeps its colours with Qt 6.12, which adds a `Color` singleton of
+  its own. An unversioned `import QtQuick.Window` brought Qt's back over
+  Omarchy's, so the panel's text, borders and "Showing" labels lost their
+  colours. The panel now names the module, as the stock shell does.
+
 ## 0.2.0-rc.12 — 2026-10-17
 
 - Pin Hyprflip to [`v0.3.0-rc.9`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.9)
