@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.0-rc.14 — 2026-11-03
+
+- Pin Hyprflip to [`v0.3.0-rc.11`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.11)
+  (`c503ab643c259e43d7e6de1347cd4cef2b3ab9da`): quiet card lifecycle controls, unattended
+  card definitions, native open/close animations and safer updates. Bridge ABI 7
+  and helper protocol 1 are unchanged.
+- An installation no longer claims every open card was kept. The installer’s
+  step details report cards left as separate windows and any layout recovery
+  limits.
+
 ## 0.2.0-rc.13 — 2026-11-01
 
 - Pin Hyprflip to [`v0.3.0-rc.10`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.10)

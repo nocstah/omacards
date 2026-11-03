@@ -14,7 +14,7 @@ Scope {
     readonly property string backend: Quickshell.env("OMACARDS_BACKEND") || (Quickshell.env("HOME") + "/.local/lib/hyprflip/control.py")
     // The Hyprflip commit this OmaCards version is built and tested against.
     // Keep it equal to the pin in README.md.
-    readonly property string hyprflipPin: "651aee31dd42007569252192bfb4a4cd6ba6e424"
+    readonly property string hyprflipPin: "c503ab643c259e43d7e6de1347cd4cef2b3ab9da"
     readonly property string hyprflipSource: Quickshell.env("HOME") + "/.local/share/omacards/hyprflip"
     readonly property string installer: Qt.resolvedUrl("install_hyprflip.py").toString().replace(/^file:\/\//, "")
     // ready, missing (no helper answered), outdated (old protocol, or a
@@ -249,7 +249,7 @@ Scope {
         onExited: (exitCode, exitStatus) => {
             const failure = root.installSteps.find(s => s.status === "failed")
             root.failed = !root.installOk
-            root.notice = root.installOk ? "Hyprflip is installed. Your open cards were kept."
+            root.notice = root.installOk ? "Hyprflip is installed."
                 : failure ? failure.title + " failed." : "Installing Hyprflip stopped unexpectedly."
             if (!root.installOk) console.warn("[omacards] installer exit " + exitCode + ": " + installErrors.text.slice(0, 2000))
             Qt.callLater(function() { root.refresh(false) })
