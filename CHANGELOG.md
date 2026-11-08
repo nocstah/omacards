@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.0-rc.15 — 2026-11-08
+
+- Pin Hyprflip to [`v0.3.0-rc.12`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.12)
+  (`667302e2b668d5266a117a83839de278f0fefbfe`): saved cards open in one step at a
+  size that fits their apps, so a floating card whose front app sits in a narrow
+  tile no longer fails with “failed to add”. A refusal names the app and the
+  sizes. Bridge ABI 7 and helper protocol 1 are unchanged.
+- The panel's message wraps instead of being cut off at the panel's edge, so a
+  longer explanation shows in full. The render fixtures add a narrow `refused`
+  capture of one.
+
 ## 0.2.0-rc.14 — 2026-11-03
 
 - Pin Hyprflip to [`v0.3.0-rc.11`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.11)

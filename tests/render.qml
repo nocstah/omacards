@@ -11,7 +11,7 @@ ShellRoot {
     id: harness
     property int step: 0
     property var original: null
-    property var shots: ["cards", "settings", "preferences-narrow", "preferences-light", "preferences-dark", "preferences-scaled", "shortcuts", "shortcut-record", "shortcut-conflict", "settings-narrow", "settings-scaled", "edit", "motion", "question", "empty", "narrow", "scaled", "light", "dark", "pane-edit", "library-ungrouped", "no-front", "unselected-card", "long-front", "scaled-entry", "install-missing", "install-progress", "install-waiting", "outdated"]
+    property var shots: ["cards", "settings", "preferences-narrow", "preferences-light", "preferences-dark", "preferences-scaled", "shortcuts", "shortcut-record", "shortcut-conflict", "settings-narrow", "settings-scaled", "edit", "motion", "question", "empty", "narrow", "scaled", "light", "dark", "pane-edit", "library-ungrouped", "no-front", "unselected-card", "long-front", "scaled-entry", "install-missing", "install-progress", "install-waiting", "outdated", "refused"]
     function findItem(item, name) {
         if (item.objectName === name) return item
         for (const child of item.children || []) { const found = findItem(child, name); if (found) return found }
@@ -99,7 +99,7 @@ ShellRoot {
                 }
                 if (next === "install-progress" || next === "install-waiting") {
                     service.installSteps = [
-                        {event: "step", id: "download", title: "Download the pinned Hyprflip release", status: "ok", detail: "Hyprflip v0.3.0-rc.11"},
+                        {event: "step", id: "download", title: "Download the pinned Hyprflip release", status: "ok", detail: "Hyprflip v0.3.0-rc.12"},
                         {event: "step", id: "check", title: "Check prerequisites", status: "failed", detail: "Missing cmake, ninja", fix: "sudo pacman -S --needed cmake ninja"}]
                     service.missingPackages = service.packagesFrom(service.installSteps[1].fix)
                     service.awaitingPackages = next === "install-waiting"
@@ -108,6 +108,11 @@ ShellRoot {
                         console.error("packagesFrom accepted an unexpected command")
                 }
                 if (next === "outdated") service.hyprflipState = "outdated"
+                if (next === "refused") {
+                    window.width = 340; window.height = 550; Style.spacingScale = 1; Style.fontBaseSize = 12
+                    service.failed = true
+                    service.notice = "Claude needs at least 600 px, so this card would have to be 1818 px wide, and the screen has 1512. Put fewer apps side by side, or give Claude a bigger share."
+                }
                 if (next === "empty") { const data = JSON.parse(JSON.stringify(harness.original)); data.cards = []; data.saved = []; service.snapshot = data }
                 if (next === "narrow") { window.width = 340; window.height = 550 }
                 if (next === "scaled") { window.width = 540; window.height = 800; Style.spacingScale = 1.25; Style.fontBaseSize = 15 }

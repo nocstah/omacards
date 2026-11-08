@@ -100,6 +100,8 @@ FocusScope {
             Label {
                 Layout.fillWidth: true
                 text: root.service ? root.service.notice : "Starting OmaCards…"
+                // Errors name the app and the sizes involved; show all of it.
+                wrapMode: Text.WordWrap
                 visible: text.length > 0
                 color: root.service && root.service.failed ? Commons.Color.urgent : Commons.Color.popups.text
             }
