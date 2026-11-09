@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.0-rc.19 — 2026-11-09
+
+- Faces show their own names (such as Mail or Code) when they have one, in
+  the cards list and the edit page.
+- Pin Hyprflip to [`v0.3.0-rc.16`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.16)
+  (`f9fcd81fdb8b50ec7de0c940836d8029aad53009`): cards with three or more faces
+  slide sideways, the flip key's face switcher, the trackpad swipe,
+  Super+Ctrl+Alt+1–4 and face names. Helper protocol 1 is unchanged.
+
 ## 0.2.0-rc.18 — 2026-11-09
 
 - Cards with up to four faces. The cards list names every face (Front, Back,

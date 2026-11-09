@@ -14,7 +14,7 @@ Scope {
     readonly property string backend: Quickshell.env("OMACARDS_BACKEND") || (Quickshell.env("HOME") + "/.local/lib/hyprflip/control.py")
     // The Hyprflip commit this OmaCards version is built and tested against.
     // Keep it equal to the pin in README.md.
-    readonly property string hyprflipPin: "17d8fc1d3e8a316389fbea90bee7a24372c70c68"
+    readonly property string hyprflipPin: "f9fcd81fdb8b50ec7de0c940836d8029aad53009"
     readonly property string hyprflipSource: Quickshell.env("HOME") + "/.local/share/omacards/hyprflip"
     readonly property string installer: Qt.resolvedUrl("install_hyprflip.py").toString().replace(/^file:\/\//, "")
     // ready, missing (no helper answered), outdated (old protocol, or a
