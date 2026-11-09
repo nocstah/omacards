@@ -11,7 +11,7 @@ ShellRoot {
     id: harness
     property int step: 0
     property var original: null
-    property var shots: ["cards", "settings", "preferences-narrow", "preferences-light", "preferences-dark", "preferences-scaled", "shortcuts", "shortcut-record", "shortcut-conflict", "settings-narrow", "settings-scaled", "edit", "motion", "question", "empty", "narrow", "scaled", "light", "dark", "pane-edit", "library-ungrouped", "no-front", "unselected-card", "long-front", "scaled-entry", "install-missing", "install-progress", "install-waiting", "outdated", "refused"]
+    property var shots: ["cards", "settings", "preferences-narrow", "preferences-light", "preferences-dark", "preferences-scaled", "shortcuts", "shortcut-record", "shortcut-conflict", "settings-narrow", "settings-scaled", "edit", "motion", "question", "empty", "narrow", "scaled", "light", "dark", "pane-edit", "library-ungrouped", "no-front", "unselected-card", "long-front", "scaled-entry", "install-missing", "install-progress", "install-waiting", "outdated", "refused", "multi-face", "multi-face-narrow", "multi-face-scaled", "multi-face-edit", "multi-face-remove", "multi-face-edit-narrow", "multi-face-edit-scaled", "edit-add-face"]
     function findItem(item, name) {
         if (item.objectName === name) return item
         for (const child of item.children || []) { const found = findItem(child, name); if (found) return found }
@@ -135,6 +135,29 @@ ShellRoot {
                     window.height = next === "scaled-entry" ? 1400 : 700
                     Commons.Color.shellValues = ({})
                     Commons.Color.background = "#faf8f3"; Commons.Color.foreground = "#242424"; Commons.Color.accent = "#2255aa"; Commons.Color.muted = "#666666"
+                }
+                // A three-face card from a core that allows four faces.
+                if (next.startsWith("multi-face") || next === "edit-add-face") {
+                    const d = JSON.parse(JSON.stringify(harness.original))
+                    Object.assign(d.capabilities, d.multi_face.capabilities)
+                    if (next !== "edit-add-face") d.cards = [d.multi_face.card]
+                    const card = d.cards[0]
+                    if (next === "multi-face-narrow") card.unfolded = true
+                    if (next === "multi-face-edit" || next === "multi-face-edit-narrow" || next === "multi-face-edit-scaled") { card.active = 1; card.current = "0xe" }
+                    if (next === "multi-face-remove") { card.active = 2; card.current = "0x10" }
+                    service.page = next.includes("edit") || next === "multi-face-remove" ? "edit" : "cards"
+                    service.snapshot = d
+                    service.context = d.context
+                    service.selectedKey = card.key
+                    const narrow = next.endsWith("-narrow"), scaled = next.endsWith("-scaled")
+                    window.width = narrow ? 340 : scaled ? 936 : 468
+                    window.height = scaled ? (service.page === "edit" ? 2400 : 2000) : service.page === "edit" ? 1000 : narrow ? 550 : 700
+                    Style.spacingScale = scaled ? 2 : 1
+                    Style.fontBaseSize = scaled ? 24 : 12
+                    Commons.Color.shellValues = ({})
+                    Commons.Color.background = "#faf8f3"; Commons.Color.foreground = "#242424"; Commons.Color.accent = "#2255aa"; Commons.Color.muted = "#666666"
+                    if (next === "multi-face-edit" || next === "multi-face-edit-narrow" || next === "multi-face-edit-scaled") { content.paneCardKey = card.key; content.paneAddress = "0xe" }
+                    if (next === "multi-face-remove") { content.paneCardKey = card.key; content.paneAddress = "0x10" }
                 }
                 if (next === "pane-edit") { service.page = "edit"; const d = JSON.parse(JSON.stringify(harness.original)); d.cards[0].active = 1; d.cards[0].current = "0xb"; service.snapshot = d; content.paneCardKey = "container:1"; content.paneAddress = "0xc"; window.height = 780 }
             })

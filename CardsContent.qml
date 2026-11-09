@@ -43,6 +43,13 @@ FocusScope {
         else closeRequested()
     }
     function edit(intent, face, pane) { paneAddress = ""; service.edit(intent, face, pane) }
+    // The helper names faces (Front, Back, Face 3, Face 4); older helpers only send two.
+    function faceName(index) {
+        const face = card && card.faces[index]
+        return face && face.name ? face.name : index === 0 ? "Front" : index === 1 ? "Back" : "Face " + (index + 1)
+    }
+    function nextFace(index) { return card ? (index + 1) % card.faces.length : 0 }
+    readonly property bool manyFaces: !!card && card.faces.length > 2
     function showItem(item) {
         if (!item) return
         let ancestor = item
@@ -268,13 +275,13 @@ FocusScope {
                     Layout.fillWidth: true
                     spacing: Style.space(8)
                     Label { text: root.card ? root.card.name : ""; Layout.fillWidth: true; font.bold: true; font.pixelSize: Style.font.title }
-                    Label { text: root.card ? "Workspace " + root.card.workspace_label + (root.card.unfolded ? " · Both sides visible" : "") + (root.card.floating ? " · Floating" : "") + (root.card.fullscreen ? " · Fullscreen" : "") : ""; font.pixelSize: Style.font.bodySmall }
+                    Label { text: root.card ? "Workspace " + root.card.workspace_label + (root.card.unfolded ? (root.manyFaces ? " · All faces visible" : " · Both sides visible") : "") + (root.card.floating ? " · Floating" : "") + (root.card.fullscreen ? " · Fullscreen" : "") : ""; font.pixelSize: Style.font.bodySmall }
                     Repeater {
                         model: root.card ? root.card.faces : []
                         RowLayout {
                             required property var modelData
                             Layout.fillWidth: true
-                            Label { text: modelData.index === 0 ? "Front" : "Back"; Layout.preferredWidth: Style.space(48); font.bold: root.card && root.card.active === modelData.index }
+                            Label { text: root.faceName(modelData.index); Layout.preferredWidth: Style.space(48); font.bold: root.card && root.card.active === modelData.index }
                             Label { text: modelData.panes.map(p => p.label).join(" · "); Layout.fillWidth: true }
                             Label { text: "Showing"; visible: root.card && (root.card.active === modelData.index || root.card.unfolded); color: Commons.Color.accent; font.pixelSize: Style.font.bodySmall }
                         }
@@ -282,7 +289,7 @@ FocusScope {
                     Flow {
                         Layout.fillWidth: true
                         spacing: Style.space(6)
-                        Action { text: "Flip"; enabled: root.card && !root.card.unfolded; onClicked: root.service.cardAction("flip") }
+                        Action { text: "Flip"; enabled: root.card && !root.card.unfolded; tooltipText: root.manyFaces ? "Turn to " + root.faceName(root.nextFace(root.card.active)) : ""; onClicked: root.service.cardAction("flip") }
                         Action { text: root.card && root.card.unfolded ? "Fold" : "Unfold"; visible: root.card && root.card.kind === "container"; onClicked: root.service.cardAction("unfold") }
                         Action { text: root.card && root.card.floating ? "Tile card" : "Float card"; visible: !!root.snapshotData.capabilities.floating; enabled: !(root.card && root.card.fullscreen); tooltipText: root.card && root.card.fullscreen ? "Leave fullscreen first" : ""; onClicked: root.service.cardAction("floating") }
                         Action { text: root.card && root.card.fullscreen ? "Leave fullscreen" : "Fullscreen"; visible: !!root.snapshotData.capabilities.fullscreen && root.card && root.card.native === true; tooltipText: "Fill the screen with the whole card · Apps keep their toolbars"; onClicked: root.service.cardAction("fullscreen") }
@@ -518,7 +525,7 @@ FocusScope {
                         Ui.PanelSeparator { Layout.fillWidth: true }
                         RowLayout {
                             Layout.fillWidth: true
-                            Label { text: face.modelData.index === 0 ? "Front" : "Back"; font.bold: true; Layout.fillWidth: true }
+                            Label { text: root.faceName(face.modelData.index); font.bold: true; Layout.fillWidth: true }
                             Item {
                                 Layout.preferredWidth: Style.space(28)
                                 Layout.preferredHeight: Style.space(20)
@@ -563,12 +570,14 @@ FocusScope {
                             Layout.fillWidth: true
                             spacing: Style.space(4)
                             Action { text: "Replace…"; enabled: !!root.snapshotData.capabilities.replace; onClicked: root.edit("replace", face.modelData.index, root.paneAddress) }
-                            Action { text: "Other side"; enabled: face.modelData.panes.length > 1 && root.card && root.card.faces[1 - face.modelData.index].panes.length < root.snapshotData.capabilities.max_panes; onClicked: root.edit("other_side", face.modelData.index, root.paneAddress) }
-                            Action { text: face.modelData.panes.length > 1 ? "Remove" : "Ungroup card"; tooltipText: face.modelData.panes.length === 1 && root.card && root.card.fullscreen ? "Leave fullscreen first" : "Keep all apps open"; enabled: face.modelData.panes.length > 1 || !(root.card && root.card.fullscreen); onClicked: root.edit(face.modelData.panes.length > 1 ? "remove" : "unpair", face.modelData.index, root.paneAddress) }
+                            Action { text: root.manyFaces ? "Move to " + root.faceName(root.nextFace(face.modelData.index)) : "Other side"; enabled: face.modelData.panes.length > 1 && root.card && root.card.faces[root.nextFace(face.modelData.index)].panes.length < root.snapshotData.capabilities.max_panes; onClicked: root.edit("other_side", face.modelData.index, root.paneAddress) }
+                            // The only app of a third or fourth face leaves with its face.
+                            Action { text: "Remove"; visible: face.modelData.panes.length > 1 || root.manyFaces; tooltipText: face.modelData.panes.length > 1 ? "Keep all apps open" : "Removes this face · Keep open"; onClicked: root.edit("remove", face.modelData.index, root.paneAddress) }
+                            Action { text: "Ungroup card"; visible: face.modelData.panes.length === 1; tooltipText: root.card && root.card.fullscreen ? "Leave fullscreen first" : "Keep all apps open"; enabled: !(root.card && root.card.fullscreen); onClicked: root.edit("unpair", face.modelData.index, root.paneAddress) }
                             Action { text: "Earlier"; visible: face.modelData.panes.length > 1; enabled: face.modelData.panes.findIndex(p => p.address === root.paneAddress) > 0; onClicked: root.edit("previous", face.modelData.index, root.paneAddress) }
                             Action { text: "Later"; visible: face.modelData.panes.length > 1; enabled: face.modelData.panes.findIndex(p => p.address === root.paneAddress) < face.modelData.panes.length - 1; onClicked: root.edit("next", face.modelData.index, root.paneAddress) }
                         }
-                        Label { text: "Removal keeps the app open."; visible: face.showing && face.modelData.panes.some(p => p.address === root.paneAddress); font.pixelSize: Style.font.bodySmall }
+                        Label { text: face.modelData.panes.length === 1 && root.manyFaces ? "Removal keeps the app open and removes this face." : "Removal keeps the app open."; Layout.fillWidth: true; visible: face.showing && face.modelData.panes.some(p => p.address === root.paneAddress); font.pixelSize: Style.font.bodySmall }
                         Flow {
                             Layout.fillWidth: true
                             spacing: Style.space(4)
@@ -578,13 +587,14 @@ FocusScope {
                             Action { text: "Stacked"; visible: face.modelData.panes.length > 1; enabled: root.snapshotData.capabilities.layout === true; selected: face.modelData.axis === "vertical"; onClicked: root.edit("vertical", face.modelData.index, null) }
                             Action { text: "Equal sizes"; visible: face.modelData.panes.length > 1; enabled: root.snapshotData.capabilities.layout === true; onClicked: root.edit("balance", face.modelData.index, null) }
                         }
-                        Action { text: "Show and edit " + (face.modelData.index === 0 ? "Front" : "Back"); visible: !face.showing; onClicked: root.edit("", face.modelData.index, null) }
+                        Action { text: "Show and edit " + root.faceName(face.modelData.index); visible: !face.showing; onClicked: root.edit("", face.modelData.index, null) }
                     }
                 }
                 Ui.PanelSeparator { Layout.fillWidth: true }
                 Flow {
                     Layout.fillWidth: true
                     spacing: Style.space(6)
+                    Action { text: "Add as new face…"; visible: root.card && root.card.kind === "container" && root.card.faces.length < (root.snapshotData.capabilities.faces || 2); enabled: !(root.card && root.card.fullscreen); tooltipText: root.card && root.card.fullscreen ? "Leave fullscreen first" : root.card ? "Becomes " + root.faceName(root.card.faces.length) + " · Choose an open app" : ""; onClicked: root.edit("add_face", root.card.active, null) }
                     Action { text: "Save as…"; onClicked: root.edit("save", root.card.active, null) }
                     Action { text: "Manage saved…"; onClicked: root.edit("manage", root.card.active, null) }
                     Action { text: "Reopen missing apps"; visible: !!root.snapshotData.capabilities.repair && root.card && root.card.saved_names.length > 0; enabled: !(root.card && root.card.fullscreen); tooltipText: root.card && root.card.fullscreen ? "Leave fullscreen first" : ""; onClicked: root.edit("repair", root.card.active, null) }
