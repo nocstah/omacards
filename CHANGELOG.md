@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.2.0-rc.18 — 2026-11-09
+
+- Cards with up to four faces. The cards list names every face (Front, Back,
+  Face 3, Face 4) and says “All faces visible” when one is unfolded. The edit
+  page shows and edits any face, moves an app to the next face (“Move to
+  Face 3”), removes a face by removing its only app, and adds an open app as a
+  new face with **Add as new face…**, offered while the card has room. Two-face
+  cards look and work as before.
+- Pin Hyprflip to [`v0.3.0-rc.15`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.15)
+  (`17d8fc1d3e8a316389fbea90bee7a24372c70c68`). Helper protocol 1 is unchanged;
+  it adds face names and `capabilities.faces`.
+
 ## 0.2.0-rc.17 — 2026-11-09
 
 - Pin Hyprflip to [`v0.3.0-rc.14`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.14)
