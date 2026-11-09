@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.0-rc.17 — 2026-11-09
+
+- Pin Hyprflip to [`v0.3.0-rc.14`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.14)
+  (`94f44adccbb5b412bde2931bef193c74af5617a7`): hy3 is retired and cards are the
+  core's own, tiled on dwindle or floating. Add beside (H), Add below (V) and
+  Remove focused app (E) have default keys again. Releasing an app keeps the
+  focus, moving one to the other face keeps the panes' proportions, and
+  replacing a tiled app trades tiles at the same size. The README and test
+  runner drop the hy3 provider. Helper protocol 1 is unchanged.
+
 ## 0.2.0-rc.16 — 2026-11-09
 
 - Pin Hyprflip to [`v0.3.0-rc.13`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.13)

@@ -34,10 +34,10 @@ names = {m['name'] for m in json.loads(ctl('-j', 'monitors'))}
 ctl('output', 'create', 'headless')
 output = next(m['name'] for m in json.loads(ctl('-j', 'monitors')) if m['name'] not in names)
 try:
-    layout = 'dwindle' if args.dwindle else 'hy3'
+    layout = 'dwindle'
     status = json.loads(ctl('hyprflip', 'status'))
-    if args.dwindle:
-        assert status['native_cards'] and not status['hy3_provider']
+    assert status['native_cards'], 'Use a Hyprflip core with native cards'
+
     workspace = max(w['id'] for w in json.loads(ctl('-j', 'workspaces'))) + 20
     ctl('eval', f'hl.monitor({{output="{output}",mode="1920x1080@60",position="2000x0",scale=1}}); '
                f'hl.workspace_rule({{workspace="{workspace}",monitor="{output}",layout="{layout}"}})')
