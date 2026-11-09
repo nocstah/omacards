@@ -99,7 +99,7 @@ ShellRoot {
                 }
                 if (next === "install-progress" || next === "install-waiting") {
                     service.installSteps = [
-                        {event: "step", id: "download", title: "Download the pinned Hyprflip release", status: "ok", detail: "Hyprflip v0.3.0-rc.12"},
+                        {event: "step", id: "download", title: "Download the pinned Hyprflip release", status: "ok", detail: "Hyprflip v0.3.0-rc.13"},
                         {event: "step", id: "check", title: "Check prerequisites", status: "failed", detail: "Missing cmake, ninja", fix: "sudo pacman -S --needed cmake ninja"}]
                     service.missingPackages = service.packagesFrom(service.installSteps[1].fix)
                     service.awaitingPackages = next === "install-waiting"

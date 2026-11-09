@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.0-rc.16 — 2026-11-09
+
+- Pin Hyprflip to [`v0.3.0-rc.13`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.13)
+  (`dc2db6e26f7ef0fca624c645ed8354c700fe2d8d`): opening a saved card that is open
+  on another workspace brings it to yours instead of sending you there, and one
+  saved floating that became a tile floats again. Reopening missing apps rebuilds
+  the card at a size that fits them. Saved rows read “Bring here from
+  workspace …” or “Open on this workspace”. Bridge ABI 7 and helper protocol 1
+  are unchanged.
+
 ## 0.2.0-rc.15 — 2026-11-08
 
 - Pin Hyprflip to [`v0.3.0-rc.12`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.12)
