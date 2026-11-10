@@ -41,6 +41,15 @@ try:
     workspace = max(w['id'] for w in json.loads(ctl('-j', 'workspaces'))) + 20
     ctl('eval', f'hl.monitor({{output="{output}",mode="1920x1080@60",position="2000x0",scale=1}}); '
                f'hl.workspace_rule({{workspace="{workspace}",monitor="{output}",layout="{layout}"}})')
+    # Through an NVIDIA GPU the nested compositor cannot allocate a headless
+    # output: it stays 0x0, and the card moved there is never on the panel's
+    # workspace, which used to surface much later as "FAIL card discovery".
+    for _ in range(20):
+        if next(m for m in json.loads(ctl('-j', 'monitors')) if m['name'] == output)['width']: break
+        time.sleep(.1)
+    else:
+        raise SystemExit('The headless test output stayed 0x0. On an NVIDIA GPU, start the nested session '
+                         "with --aquamarine (see Hyprflip's TESTING.md, \"Nested sessions on NVIDIA\").")
     cards = json.loads(ctl('hyprflip', 'status'))['containers']
     assert len(cards) == 1, 'Use the three-app nested container fixture'
     apps = session_root / 'data/applications'
@@ -70,7 +79,7 @@ try:
         for source in project.glob('*.qml'): shutil.copy2(source, root / 'Cards' / source.name)
         shutil.copy2(project / 'tests/nested.qml', root / 'shell.qml')
         result = subprocess.run(['quickshell', '-p', str(root), '--no-color'], env=env,
-                                capture_output=True, text=True, timeout=60)
+                                capture_output=True, text=True, timeout=120)
         log = result.stdout + result.stderr
         (project / 'tests/native-result.log').write_text(log)
         print(log)

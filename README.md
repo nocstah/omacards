@@ -296,9 +296,14 @@ python3 tests/run-native.py /tmp/oc-demo/session.json \
 
 The last check requires Hyprflip's disposable three-window session:
 `python3 tests/nested_session.py --directory /tmp/oc-demo --native-cards` from its
-checkout. The runner rejects a live desktop connection, creates a headless
-test output, and tests popup focus, flip/unfold, structured save/edit, motion
-and direct saved-card activation. Rendering uses synthetic fixture data.
+checkout. On an NVIDIA GPU, also pass `--aquamarine` with a patched Aquamarine
+build, as Hyprflip's `TESTING.md` explains under "Nested sessions on NVIDIA";
+without it the headless test output stays 0×0 and the runner stops with that
+message. The runner rejects a live desktop connection, creates a headless
+test output, and tests popup focus, flip/unfold, structured save/edit, motion,
+direct saved-card activation, choosing an app on a hidden face, reordering,
+and Ungroup keeping the apps open. It leaves the session with the saved card
+rebuilt, so it can run again. Rendering uses synthetic fixture data.
 
 MIT licensed. Built on Hyprflip and Omarchy's native shell components.
 

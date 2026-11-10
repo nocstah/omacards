@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased
+
+- Ungroup works again when the shown side has several apps. Hyprflip ungroups
+  through a side with one app, so the panel now uses such a side; when every
+  side has several apps, Ungroup is disabled and says how to get there.
+  In rc.21 it failed with “That action is no longer available”.
+- Choosing an app on a two-face card's hidden side flips to it and keeps it
+  selected, instead of opening Hyprflip's edit chooser. On cards with three
+  or more faces those rows are disabled and say which face the app is on.
+- The panel catches up right after a card turns, instead of showing the old
+  face for up to five seconds.
+- The native test stops early with a clear message when the headless output
+  stays 0×0 (an NVIDIA GPU without `--aquamarine`), and now also covers hidden-
+  face selection, reordering and Ungroup. It can run repeatedly on one session.
+
 ## 0.2.0-rc.21 — 2026-11-10
 
 - Settings has a **Card keys beside a card** switch, shown when Hyprflip

@@ -65,6 +65,15 @@ ShellRoot {
                 [() => content.moveFocus(1, 0), "accessibleName:Move Telegram to Front"],
                 [() => content.moveFocus(0, -1), "title:Telegram"]])
         }
+        // Hyprflip ungroups from a side with one app: Front here. With
+        // several apps on every side, Ungroup is offered nowhere.
+        if (name === "ungroup-confirm") {
+            if (content.ungroupFace !== 0) console.error("Ungroup should go through the one-app Front, not face " + content.ungroupFace)
+            const crowded = JSON.parse(JSON.stringify(harness.original))
+            crowded.cards[0].faces[0].panes.push(Object.assign({}, crowded.cards[0].faces[1].panes[0], {address: "0xfe"}))
+            service.snapshot = crowded
+            if (content.ungroupFace !== -1) console.error("Ungroup offered with several apps on every side")
+        }
         // A refresh that rebuilds the rows puts focus back on the same row.
         if (name === "motion-refresh" && focusName() !== "title:Slide") console.error("A refresh lost focus: " + focusName())
         // A saved preference keeps the page and the control in focus.
@@ -74,7 +83,7 @@ ShellRoot {
         }
         if (name === "worked" && service.busy) console.error("The fake open did not finish in time")
         if (name === "installed" && service.installing) console.error("The fake install did not finish in time")
-        if (["settings", "pane-edit", "motion-refresh", "applied", "worked", "installed"].includes(name)) console.log("OMACARDS_CHECKED " + name)
+        if (["settings", "pane-edit", "motion-refresh", "ungroup-confirm", "applied", "worked", "installed"].includes(name)) console.log("OMACARDS_CHECKED " + name)
     }
     Cards.Service { id: service }
     FileView {

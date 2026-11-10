@@ -102,7 +102,10 @@ Scope {
         snapshotProcess.running = true
     }
     function acceptSnapshot(raw) {
-        if (preserveContext && raw === snapshotText && !pendingOwner && snapshot.available) return
+        if (preserveContext && raw === snapshotText && !pendingOwner && snapshot.available) {
+            if (snapshot.animating) settleRefresh.restart()
+            return
+        }
         snapshotText = ""
         if (!raw.trim()) {
             snapshot = {available: false, cards: [], saved: [], capabilities: {}}
@@ -122,6 +125,7 @@ Scope {
                 return revealPending()
             }
             snapshotText = raw
+            if (data.animating) settleRefresh.restart()
             hyprflipState = !data.available ? "unloaded"
                 : hyprflipCurrent(data) ? "ready" : "outdated"
             snapshot = data
@@ -158,7 +162,9 @@ Scope {
             widget.reveal()
         }
     }
-    function run(action, extra) {
+    // returning brings the panel back afterwards, as edits do: for a flip
+    // asked for from the edit page.
+    function run(action, extra, returning) {
         if (busy || refreshing || !snapshot.available || !context) return
         const request = Object.assign({protocol: 1, action: action, context: context}, extra || {})
         operation = request
@@ -170,7 +176,7 @@ Scope {
         question = null
         opening = null
         quiet = quietActions.indexOf(action) >= 0
-        returnToPanel = !quiet && ["edit", "manage", "preview", "floating", "fullscreen"].indexOf(action) >= 0
+        returnToPanel = !quiet && (returning === true || ["edit", "manage", "preview", "floating", "fullscreen"].indexOf(action) >= 0)
         operationProcess.command = ["python3", backend, "run", "--request", JSON.stringify(request)]
         operationProcess.running = true
     }
@@ -218,9 +224,9 @@ Scope {
         awaitingPackages = true
         packageDeadline.restart()
     }
-    function cardAction(action, extra) {
+    function cardAction(action, extra, returning) {
         if (!currentCard) return
-        run(action, Object.assign({target: {kind: currentCard.kind, id: currentCard.id, token: currentCard.token}}, extra || {}))
+        run(action, Object.assign({target: {kind: currentCard.kind, id: currentCard.id, token: currentCard.token}}, extra || {}), returning)
     }
     function edit(intent, face, pane) {
         cardAction("edit", {intent: intent, face: face, pane: pane || null})
@@ -382,6 +388,9 @@ Scope {
         onTriggered: root.refresh(true)
     }
     Timer { id: eventRefresh; interval: 180; onTriggered: root.refresh(true) }
+    // A card still turning reports the face it is leaving; look again once
+    // the turn is over instead of showing the old face until the next refresh.
+    Timer { id: settleRefresh; interval: 200; onTriggered: if (root.owner && root.owner.opened) root.refresh(true) }
     Connections {
         target: Hyprland
         function onRawEvent(event) {

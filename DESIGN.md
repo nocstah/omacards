@@ -261,13 +261,19 @@ face, Save as, Manage saved, Reopen missing apps, Ungroup card) close the page.
 A disabled action says why in its tooltip (“Fold the card first”, “Back is
 full”).
 
-A hidden face's pane rows say “Select to show Back”; choosing one shows that
-face and selects the app. The face also keeps an explicit “Show and edit”
-action.
+On a two-face card, a hidden face's pane rows say “Select to flip to Back”;
+choosing one flips the card and keeps the app selected, without opening
+Hyprflip's edit chooser. On a card with three or more faces the hidden rows are
+disabled and say “On Back”, because a flip would not land on that face. Every
+hidden face keeps an explicit “Show and edit” action.
 
 Ungroup ends the card, so it asks once, in place: “Ungroup “Name”? Its apps stay
 open as separate windows.” with Ungroup and Keep card, focus on Keep card, and
-Escape keeping the card.
+Escape keeping the card. Hyprflip ungroups through a side with one app, so the
+panel uses the shown side when it has one app and otherwise the first side that
+does. When every side has several apps, Ungroup is disabled and its tooltip
+says to remove apps until a side has one, or to press the card's Ungroup
+shortcut.
 
 Pane selection is keyed by the card key and pane address, not the snapshot
 object identity. It survives refresh while that card and pane still exist.

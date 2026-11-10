@@ -25,6 +25,16 @@ FocusScope {
     // The card whose Ungroup is waiting for confirmation.
     property string ungroupKey: ""
     readonly property bool confirmUngroup: ungroupKey !== "" && !!card && card.key === ungroupKey && page === "edit"
+    // Hyprflip's editor ungroups from a side that holds a single app, so send
+    // Ungroup through one: the shown side if it qualifies, otherwise the first.
+    readonly property int ungroupFace: {
+        if (!card) return -1
+        const shown = card.faces.find(f => f.index === card.active)
+        if (shown && shown.panes.length === 1) return shown.index
+        const single = card.faces.find(f => f.panes.length === 1)
+        return single ? single.index : -1
+    }
+    readonly property string ungroupShortcut: ((snapshotData.shortcuts ? snapshotData.shortcuts.rows : []).find(r => r.id === "unpair") || {shortcut: ""}).shortcut
     property string filter: ""
     property int cursor: 0
     property int choiceCursor: 0
@@ -78,10 +88,14 @@ FocusScope {
         if (["previous", "next", "horizontal", "vertical", "balance", ""].indexOf(intent) < 0) paneAddress = ""
         service.edit(intent, face, pane)
     }
+    // An app on a two-face card's hidden side: flip to it and keep it
+    // selected. An empty edit intent would open Hyprflip's whole edit chooser,
+    // and Flip cannot reach a chosen face of three or more, so those rows wait
+    // for "Show and edit".
     function choosePane(faceIndex, address, showing) {
         paneCardKey = card.key
-        if (!showing) { paneAddress = address; edit("", faceIndex, null) }
-        else paneAddress = paneAddress === address ? "" : address
+        if (showing) paneAddress = paneAddress === address ? "" : address
+        else if (!manyFaces) { paneAddress = address; service.cardAction("flip", {}, true) }
     }
     function selectedPane() {
         if (!card || !paneAddress) return null
@@ -789,9 +803,10 @@ FocusScope {
                                         showIcon: true
                                         appIcon: paneBlock.modelData.icon || ""
                                         detail: [paneBlock.modelData.title !== paneBlock.modelData.label ? paneBlock.modelData.title : "",
-                                                 face.showing ? "" : "Select to show " + root.faceName(face.modelData.index)].filter(Boolean).join(" · ")
+                                                 face.showing ? "" : root.manyFaces ? "On " + root.faceName(face.modelData.index) : "Select to flip to " + root.faceName(face.modelData.index)].filter(Boolean).join(" · ")
                                         selected: paneBlock.chosen
                                         pointerGate: gate
+                                        enabled: face.showing || !root.manyFaces
                                         onActivated: root.choosePane(face.modelData.index, paneBlock.modelData.address, face.showing)
                                     }
                                     // The selected app's own actions sit under its row.
@@ -896,8 +911,10 @@ FocusScope {
                             id: ungroupButton
                             text: "Ungroup card…"
                             visible: root.card && root.card.kind === "container" && !root.confirmUngroup
-                            enabled: !(root.card && root.card.fullscreen)
-                            tooltipText: root.card && root.card.fullscreen ? "Leave fullscreen first" : "Ends the card · Its apps stay open"
+                            enabled: !(root.card && root.card.fullscreen) && root.ungroupFace >= 0
+                            tooltipText: root.card && root.card.fullscreen ? "Leave fullscreen first"
+                                : root.ungroupFace < 0 ? "Every side has several apps. Remove apps until a side has one" + (root.ungroupShortcut ? ", or press " + root.ungroupShortcut + " in the card" : "")
+                                : "Ends the card · Its apps stay open"
                             onClicked: root.ungroupKey = root.card.key
                         }
                     }
@@ -917,7 +934,7 @@ FocusScope {
                             Action {
                                 text: "Ungroup"
                                 accessibleName: root.card ? "Ungroup “" + root.card.name + "”" : "Ungroup"
-                                onClicked: { root.ungroupKey = ""; root.edit("unpair", root.card.active, null) }
+                                onClicked: { root.ungroupKey = ""; root.edit("unpair", root.ungroupFace, null) }
                             }
                             Action { id: keepCard; text: "Keep card"; onClicked: { root.ungroupKey = ""; ungroupButton.forceActiveFocus() } }
                         }
