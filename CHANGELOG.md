@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.0-rc.22 — 2026-11-10
 
 - Ungroup works again when the shown side has several apps. Hyprflip ungroups
   through a side with one app, so the panel now uses such a side; when every
