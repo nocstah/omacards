@@ -68,12 +68,15 @@ each app controls its own documents, browser tabs and login state.
 - **Card fullscreen:** fill the screen with every app of a dwindle or floating
   card. Apps are not told they are fullscreen, so browsers keep their toolbars.
 - **Settings:** Classic tabs or an experimental card frame, Desktop or Compact
-  spacing, an optional accent ring in your theme's color, motion, and editable keyboard shortcuts with conflict checks and
-  per-action defaults.
+  spacing, an optional accent ring in your theme's color, whether card keys
+  also work from a window beside a card, motion, and editable keyboard
+  shortcuts with conflict checks and per-action defaults.
 - **Motion:** seven transitions, individual previews, speed presets and exact
   duration. Dissolve and Portal are experimental. Settings apply to all cards.
-- **Keyboard:** search with arrows and Enter, Tab through controls, Escape to
-  go back or cancel. The footer shows the current Edit and Saved-card shortcuts.
+- **Keyboard:** arrows or h/j/k/l move between controls, Tab reaches every
+  control, Enter or Space activates, and Escape clears a search, goes back or
+  cancels. In the edit page, Ctrl+Up/Down moves the selected app and Delete
+  removes it. The footer shows the current Edit and Saved-card shortcuts.
 
 OmaCards runs in Omarchy's shell. It does not replace the compositor plugin,
 maintain a second card database, or start a background Python daemon.
@@ -81,11 +84,11 @@ maintain a second card database, or start a background Python daemon.
 ## Appearance, spacing and dragging
 
 With the pinned Hyprflip core and helper below, Settings
-offers **Classic tabs** or **Card frame (Experimental)**, plus **Desktop
-spacing** or **Compact spacing (12 logical pixels)** between apps. Choices apply
+offers **Classic tabs** or **Card frame** (experimental), plus **Desktop** or
+**Compact** app spacing (12 logical pixels) between apps. Choices apply
 to existing cards and survive configuration reloads and restarts.
 
-Turn on **Card highlight → Accent ring** to draw a ring in your Omarchy theme's
+Turn on **Accent ring** to draw a ring in your Omarchy theme's
 accent color around every card, so you can tell card windows from ordinary
 ones at a glance. The ring follows theme changes. The focused card's ring is
 fully opaque and other cards' rings are quieter. The ring needs a Hyprflip

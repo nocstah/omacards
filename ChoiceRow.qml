@@ -3,24 +3,39 @@ import Quickshell
 import qs.Commons
 import qs.Ui as Ui
 
+// One row the keyboard and the pointer share. Its highlight follows focus
+// only, as the host CursorSurface contract asks: real pointer movement,
+// filtered by the panel's PointerMoveGate, moves focus to the row instead of
+// painting a second highlight beside the keyboard's.
 Ui.CursorSurface {
     id: root
     property string title: ""
     property string detail: ""
     property bool selected: false
+    // A row that is one choice of several reports whether it is the chosen one.
+    property bool checkable: false
     property bool showIcon: false
     property string appIcon: ""
+    // The panel's gate; while it is paused (someone is typing or recording a
+    // shortcut) the pointer only reports pointed() and never takes focus.
+    property var pointerGate: null
+    property bool followPointer: true
     signal activated()
+    signal pointed()
     implicitHeight: labels.implicitHeight + Style.space(16)
     activeFocusOnTab: true
     current: selected
-    hasCursor: mouse.containsMouse || activeFocus
-    Accessible.role: Accessible.Button
+    hasCursor: activeFocus
+    opacity: enabled ? 1 : 0.45
+    Accessible.role: checkable ? Accessible.RadioButton : Accessible.Button
+    Accessible.checkable: checkable
+    Accessible.checked: checkable && selected
     Accessible.name: title + (detail ? ", " + detail : "")
     Accessible.onPressAction: if (enabled) root.activated()
     Keys.onReturnPressed: root.activated()
     Keys.onEnterPressed: root.activated()
     Keys.onSpacePressed: root.activated()
+    onPointed: if (followPointer && !(pointerGate && pointerGate.paused) && !activeFocus) forceActiveFocus()
     Column {
         id: labels
         anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter; margins: Style.space(10) }
@@ -52,5 +67,11 @@ Ui.CursorSurface {
             Rectangle { x: 1; y: Style.space(5); width: parent.width - 2; height: 1; color: Color.popups.text }
         }
     }
-    MouseArea { id: mouse; anchors.fill: parent; hoverEnabled: true; onClicked: root.activated() }
+    MouseArea {
+        id: mouse
+        anchors.fill: parent
+        hoverEnabled: true
+        onClicked: root.activated()
+        onPositionChanged: mouse => { if (!root.pointerGate || root.pointerGate.moved(root, mouse)) root.pointed() }
+    }
 }

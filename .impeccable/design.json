@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-22T02:51:14Z",
+  "generatedAt": "2026-11-10T00:00:00Z",
   "title": "Design System: OmaCards",
   "extensions": {
     "typographyMeta": {
@@ -59,7 +59,13 @@
         "/usr/share/omarchy/shell/Ui/TextField.qml",
         "/usr/share/omarchy/shell/Ui/BarIconButton.qml",
         "/usr/share/omarchy/shell/Ui/WidgetButton.qml",
-        "/usr/share/omarchy/shell/Ui/PanelSeparator.qml"
+        "/usr/share/omarchy/shell/Ui/PanelSeparator.qml",
+        "/usr/share/omarchy/shell/Ui/Toggle.qml",
+        "/usr/share/omarchy/shell/Ui/ButtonGroup.qml",
+        "/usr/share/omarchy/shell/Ui/PanelSectionHeader.qml",
+        "/usr/share/omarchy/shell/Ui/PanelKeyCatcher.qml",
+        "/usr/share/omarchy/shell/Ui/PointerMoveGate.qml",
+        "/usr/share/omarchy/shell/Ui/BorderSurface.qml"
       ],
       "colorBindings": [
         {
@@ -80,7 +86,7 @@
         },
         {
           "expression": "Color.urgent",
-          "use": "Failure notices and saved-library errors."
+          "use": "Error notices, as the tint and outline of Notice.qml, and the mark of a failed install step; never the colour of the words."
         },
         {
           "expression": "Color.foreground",
@@ -275,7 +281,7 @@
       },
       {
         "name": "The Explicit Target Rule",
-        "body": "Inspecting a hidden face does not activate it.\nShow the named activation action before editing that face, and keep pane actions\nattached to the selected pane.",
+        "body": "Keep pane actions attached to the selected pane,\nand say what choosing a hidden face's row will do before it does it.",
         "section": "components"
       }
     ],
@@ -284,6 +290,8 @@
       "**Do** use full-opacity popup text for local functional explanations.",
       "**Do** pair face state with the word “Showing,” app names, and pane diagrams.",
       "**Do** preserve keyboard activation, visible focus, and scrolling to targets.",
+      "**Do** reach for the host's Toggle and ButtonGroup before building a control from rows or buttons.",
+      "**Do** name the target in an action's accessible name and the reason in a disabled action's tooltip.",
       "**Do** verify narrow, scaled, light, and dark host configurations when extending the popup."
     ],
     "donts": [
@@ -291,6 +299,7 @@
       "**Don't** invent CSS tokens or HTML previews that claim to reproduce live QML bindings.",
       "**Don't** use glyph icons as a new app-control convention; preserve the existing host bar integration separately.",
       "**Don't** treat a refreshed snapshot object as a different selected card or pane.",
+      "**Don't** colour a whole paragraph with `Color.urgent`, or signal an error by colour alone.",
       "**Don't** imply that UI selection or documented tokens create durable preferences."
     ]
   }

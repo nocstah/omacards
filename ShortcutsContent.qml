@@ -13,6 +13,8 @@ ColumnLayout {
     property string candidateKey: ""
     property string error: ""
     property bool recording: false
+    // The panel's PointerMoveGate, shared with the other rows.
+    property var pointerGate: null
     readonly property string conflictError: selected ? conflict(candidateMask, candidateKey) : ""
     signal revealEditor(var item)
     spacing: Style.space(8)
@@ -79,7 +81,7 @@ ColumnLayout {
         spacing: Style.space(8)
         Label { text: root.selected ? root.selected.label : ""; font.bold: true; Layout.fillWidth: true }
         Label { text: root.recording ? "Press your new shortcut. Escape cancels." : root.chord(root.candidateMask, root.candidateKey); Layout.fillWidth: true }
-        Label { text: root.error || root.conflictError; visible: text.length > 0; color: Color.urgent; Layout.fillWidth: true }
+        Notice { text: root.error || root.conflictError; error: true; Layout.fillWidth: true }
         Flow {
             Layout.fillWidth: true
             spacing: Style.space(6)
@@ -113,6 +115,7 @@ ColumnLayout {
             detail: modelData.shortcut + (modelData.editable ? "" : " · Not editable here")
             selected: modelData.id === root.selectedId
             enabled: modelData.editable
+            pointerGate: root.pointerGate
             onActivated: root.choose(modelData)
         }
     }

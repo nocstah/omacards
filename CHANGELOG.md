@@ -1,5 +1,38 @@
 # Changelog
 
+## Unreleased
+
+- Settings has a **Card keys beside a card** switch, shown when Hyprflip
+  supports it: flip, faces, unfold and peek can also act on the one card on a
+  workspace from a window that is in no card, such as a terminal.
+- Settings use the shell's own switches and button groups: Accent ring and
+  Card keys beside a card are switches, and appearance, spacing, divider and
+  speed are button groups with the chosen option explained beneath. Motion and
+  Keyboard shortcuts come first.
+- Saving a preference no longer blanks the panel or moves focus: the page
+  stays, “Saving…” shows beside the heading, and the bar tooltip says so.
+- Keyboard: arrows and h/j/k/l move between controls by row and column, Tab
+  reaches every control, Space activates actions, and Escape clears a search
+  before it closes anything. Focus returns to the control you used when an
+  edit brings the panel back or a refresh rebuilds the rows. In the edit page,
+  Ctrl+Up/Down moves the selected app and Delete or x removes it.
+- The edit page puts an app's actions directly under it and names the app in
+  them for screen readers. Moving apps, changing a face's layout and equal
+  sizes keep the app selected. Beside and Stacked are one button group.
+  Selecting an app on a hidden face shows that face. Ungroup moved to the card
+  actions and asks first, in place. Disabled actions say why.
+- Installing Hyprflip says so, explains that the panel can close while it
+  continues, and no longer offers a Cancel that did nothing. A finished install
+  drops its steps; a failed one keeps them, with the command to run
+  selectable. A first run without Hyprflip reads as a next step, not an error,
+  and the Refresh Cards button is gone (the panel refreshes itself).
+- Errors sit in a callout outlined and tinted with the theme's urgent colour,
+  with the words in full-contrast text, including saved-library and shortcut
+  errors. Helper failures say what to do next.
+- Rows highlight only where focus is, as the shell's own panels do, and the
+  pointer moves focus only when it really moves. Choices report whether they
+  are selected, and switches whether they are on, to screen readers.
+
 ## 0.2.0-rc.20 — 2026-11-10
 
 - Hyprflip 0.3.0-rc.16 or any later release counts as current, so a newer

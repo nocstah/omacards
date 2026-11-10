@@ -18,11 +18,14 @@ with tempfile.TemporaryDirectory(prefix='omacards-render-') as directory:
     env = os.environ | dict(XDG_RUNTIME_DIR=str(root / 'runtime'), XDG_CONFIG_HOME=str(root / 'config'),
                             XDG_CACHE_HOME=str(root / 'cache'), QT_QPA_PLATFORM='offscreen',
                             QT_QPA_PLATFORMTHEME='', QT_QUICK_BACKEND='software', LIBGL_ALWAYS_SOFTWARE='1',
-                            OMACARDS_FIXTURE=str(project / 'tests/fixture.json'), OMACARDS_CAPTURE_DIR=str(captures))
+                            OMACARDS_FIXTURE=str(project / 'tests/fixture.json'), OMACARDS_CAPTURE_DIR=str(captures),
+                            # Stand-ins answer busy-state captures; nothing touches the desktop.
+                            OMACARDS_BACKEND=str(project / 'tests/fake-helper.py'),
+                            OMACARDS_INSTALLER=str(project / 'tests/fake-installer.py'))
     env.pop('WAYLAND_DISPLAY', None)
     env.pop('DISPLAY', None)
     result = subprocess.run(['quickshell', '-p', str(root), '--no-color'], env=env,
-                            capture_output=True, text=True, timeout=20)
+                            capture_output=True, text=True, timeout=90)
     log = result.stdout + result.stderr
     (project / 'tests/render-result.log').write_text(log)
     # Layer-shell windows cannot load on offscreen; native tests cover them.
@@ -30,4 +33,6 @@ with tempfile.TemporaryDirectory(prefix='omacards-render-') as directory:
     unexpected = [line for line in log.splitlines() if ('ERROR' in line or 'WARN scene' in line) and not any(a in line for a in allowed)]
     assert not unexpected, '\n'.join(unexpected)
     assert result.returncode == 0 and 'OMACARDS_UI_CAPTURE_OK' in log, log
+    checked = {line.split('OMACARDS_CHECKED ')[1].strip() for line in log.splitlines() if 'OMACARDS_CHECKED ' in line}
+    assert checked == {'settings', 'pane-edit', 'motion-refresh', 'applied', 'worked', 'installed'}, 'checks that did not run: ' + log
     print('Captured Cards, Edit, Motion, choices, entry states, narrow, scaled and theme fixtures:', captures)

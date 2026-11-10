@@ -36,7 +36,11 @@ Ui.BarWidget {
         bar: root.bar
         text: "󰘸" // Material Design cards-outline, from Omarchy's Nerd Font.
         active: root.opened || (root.service && root.service.busy)
-        tooltipText: root.service && root.service.busy ? "OmaCards · Opening card… Click for progress" : "OmaCards · Open, edit and flip cards"
+        tooltipText: !root.service || !root.service.busy ? "OmaCards · Open, edit and flip cards"
+            : root.service.installing ? "OmaCards · Installing Hyprflip… Click for progress"
+            : root.service.opening ? "OmaCards · Opening “" + root.service.opening.name + "”… Click for progress"
+            : root.service.quiet ? "OmaCards · Saving your preference…"
+            : "OmaCards · Working on your card… Click for progress"
         onPressed: root.opened ? root.close() : root.open()
     }
 }

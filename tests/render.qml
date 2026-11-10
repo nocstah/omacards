@@ -11,11 +11,70 @@ ShellRoot {
     id: harness
     property int step: 0
     property var original: null
-    property var shots: ["cards", "settings", "preferences-narrow", "preferences-light", "preferences-dark", "preferences-scaled", "shortcuts", "shortcut-record", "shortcut-conflict", "settings-narrow", "settings-scaled", "edit", "motion", "question", "empty", "narrow", "scaled", "light", "dark", "pane-edit", "library-ungrouped", "no-front", "unselected-card", "long-front", "scaled-entry", "install-missing", "install-progress", "install-waiting", "outdated", "refused", "multi-face", "multi-face-narrow", "multi-face-scaled", "multi-face-edit", "multi-face-remove", "multi-face-edit-narrow", "multi-face-edit-scaled", "edit-add-face"]
+    property var shots: ["cards", "settings", "preferences-narrow", "preferences-light", "preferences-dark", "preferences-scaled", "shortcuts", "shortcut-record", "shortcut-conflict", "settings-narrow", "settings-scaled", "edit", "motion", "motion-refresh", "question", "empty", "narrow", "scaled", "light", "dark", "pane-edit", "library-ungrouped", "no-front", "unselected-card", "long-front", "scaled-entry", "install-missing", "install-progress", "install-waiting", "outdated", "refused", "multi-face", "multi-face-narrow", "multi-face-scaled", "multi-face-edit", "multi-face-remove", "multi-face-edit-narrow", "multi-face-edit-scaled", "edit-add-face", "settings-dark", "error-dark", "ungroup-confirm",
+        // In-flight shots come last, each followed by the moment it finishes.
+        "applying", "applied", "working", "worked", "installing", "installed"]
     function findItem(item, name) {
         if (item.objectName === name) return item
         for (const child of item.children || []) { const found = findItem(child, name); if (found) return found }
         return null
+    }
+    // Every shot starts from one known theme, scale and size, so nothing
+    // carries over from the shot before, including the live theme's [controls]
+    // overrides. The urgent colors are the iOS Glass pair the live theme uses.
+    function seed(dark) {
+        Style.applyShellValues({})
+        Commons.Color.shellValues = ({})
+        Commons.Color.background = dark ? "#1c2026" : "#faf8f3"
+        Commons.Color.foreground = dark ? "#e6e9ef" : "#242424"
+        Commons.Color.accent = dark ? "#a9bfff" : "#2255aa"
+        Commons.Color.muted = dark ? "#9ba6b5" : "#666666"
+        Commons.Color.urgent = dark ? "#ff453a" : "#ff3b30"
+    }
+    // Keyboard checks: each move must land on the named control.
+    function focusName() { return window.activeFocusItem ? content.focusKey(window.activeFocusItem) : "none" }
+    function focusOn(key) {
+        const item = content.focusables().find(i => content.focusKey(i) === key)
+        if (item) item.forceActiveFocus(); else console.error("Keyboard: no control " + key)
+    }
+    function expectKeys(page, steps) {
+        for (const [move, expected] of steps) {
+            move()
+            if (focusName() !== expected) console.error("Keyboard on " + page + ": expected " + expected + ", focused " + focusName())
+        }
+    }
+    function checkKeys(name) {
+        if (name === "settings") {
+            content.focusEntry()
+            expectKeys(name, [
+                [() => content.moveFocus(0, 1), "accessibleName:Back"],
+                [() => content.moveFocus(1, 0), "accessibleName:Close"],
+                [() => content.moveFocus(0, 1), "title:Motion"],
+                [() => content.moveFocus(0, 1), "title:Keyboard shortcuts"],
+                [() => content.moveFocus(0, 1), "accessibleName:Card appearance, Classic tabs selected"],
+                [() => content.moveFocus(0, 1), "accessibleName:App spacing, Compact selected"],
+                [() => content.moveFocus(0, -1), "accessibleName:Card appearance, Classic tabs selected"],
+                [() => content.moveTab(-1), "title:Keyboard shortcuts"],
+                [() => { harness.focusOn("accessibleName:Back"); content.moveTab(-1) }, "label:Card keys beside a card"],
+                [() => content.moveTab(1), "accessibleName:Back"]])
+        }
+        if (name === "pane-edit") {
+            expectKeys(name, [
+                [() => harness.focusOn("title:Telegram"), "title:Telegram"],
+                [() => content.moveFocus(0, 1), "accessibleName:Replace Telegram"],
+                [() => content.moveFocus(1, 0), "accessibleName:Move Telegram to Front"],
+                [() => content.moveFocus(0, -1), "title:Telegram"]])
+        }
+        // A refresh that rebuilds the rows puts focus back on the same row.
+        if (name === "motion-refresh" && focusName() !== "title:Slide") console.error("A refresh lost focus: " + focusName())
+        // A saved preference keeps the page and the control in focus.
+        if (name === "applied") {
+            if (service.page !== "settings") console.error("Saving a preference left Settings")
+            if (focusName() !== "label:Accent ring") console.error("Saving a preference moved focus to " + focusName())
+        }
+        if (name === "worked" && service.busy) console.error("The fake open did not finish in time")
+        if (name === "installed" && service.installing) console.error("The fake install did not finish in time")
+        if (["settings", "pane-edit", "motion-refresh", "applied", "worked", "installed"].includes(name)) console.log("OMACARDS_CHECKED " + name)
     }
     Cards.Service { id: service }
     FileView {
@@ -25,6 +84,7 @@ ShellRoot {
             service.snapshot = JSON.parse(text())
             service.context = service.snapshot.context
             service.selectedKey = "container:1"
+            harness.seed(false)
             capture.start()
         }
     }
@@ -51,11 +111,16 @@ ShellRoot {
             const name = harness.shots[harness.step]
             area.grabToImage(function(result) {
                 if (!result.saveToFile(Quickshell.env("OMACARDS_CAPTURE_DIR") + "/" + name + ".png")) throw new Error("Capture failed")
+                harness.checkKeys(name)
                 harness.step++
                 if (harness.step === harness.shots.length) { console.log("OMACARDS_UI_CAPTURE_OK"); Qt.quit(); return }
                 const next = harness.shots[harness.step]
+                harness.seed(next.includes("dark"))
+                window.width = 468; window.height = 700
+                // An "after" shot captures the operation started before it.
+                if (["applied", "worked", "installed"].includes(next)) return
                 service.question = null
-                service.page = ["settings","shortcuts","edit","motion"].indexOf(next) >= 0 ? next : "cards"
+                service.page = ["settings","shortcuts","edit","motion"].indexOf(next) >= 0 ? next : ["settings-dark", "applying"].includes(next) ? "settings" : next === "ungroup-confirm" ? "edit" : next === "motion-refresh" ? "motion" : "cards"
                 service.snapshot = JSON.parse(JSON.stringify(harness.original))
                 service.context = service.snapshot.context
                 service.selectedKey = "container:1"
@@ -91,11 +156,15 @@ ShellRoot {
                 service.notice = ""
                 service.missingPackages = []
                 service.awaitingPackages = false
-                if (next === "install-missing" || next === "install-progress" || next === "install-waiting") {
+                // A missing Hyprflip is a first-run step, not an error; a failed install is.
+                if (["install-missing", "install-progress", "install-waiting", "installing"].includes(next)) {
                     service.snapshot = {available: false, cards: [], saved: [], capabilities: {}}
                     service.hyprflipState = "missing"
-                    service.failed = true
                     service.notice = "Hyprflip is not installed. Install it here; if build tools are missing, OmaCards opens a terminal to install them."
+                }
+                if (next === "install-progress" || next === "install-waiting") {
+                    service.failed = true
+                    service.notice = "Check prerequisites failed."
                 }
                 if (next === "install-progress" || next === "install-waiting") {
                     service.installSteps = [
@@ -177,6 +246,22 @@ ShellRoot {
                     if (next === "multi-face-edit" || next === "multi-face-edit-narrow" || next === "multi-face-edit-scaled") { content.paneCardKey = card.key; content.paneAddress = "0xe" }
                     if (next === "multi-face-remove") { content.paneCardKey = card.key; content.paneAddress = "0x10" }
                 }
+                if (next === "error-dark") {
+                    service.failed = true
+                    service.notice = "Claude needs at least 600 px, so this card would have to be 1818 px wide, and the screen has 1512. Put fewer apps side by side, or give Claude a bigger share."
+                }
+                if (next === "ungroup-confirm") content.ungroupKey = "container:1"
+                // Act after the page change's queued focusEntry, as a person would.
+                if (next === "applying") Qt.callLater(() => { harness.focusOn("label:Accent ring"); service.run("accent", {enabled: false, color: service.accentHex}) })
+                if (next === "motion-refresh") Qt.callLater(() => {
+                    harness.focusOn("title:Slide")
+                    // A changed model rebuilds every row; an identical one is left alone.
+                    const changed = JSON.parse(JSON.stringify(harness.original))
+                    changed.transition_modes.find(m => m.value === "fade").detail += " · Changed"
+                    service.snapshot = changed
+                })
+                if (next === "working") service.savedAction("open", service.snapshot.saved[1])
+                if (next === "installing") service.installHyprflip()
                 if (next === "pane-edit") { service.page = "edit"; const d = JSON.parse(JSON.stringify(harness.original)); d.cards[0].active = 1; d.cards[0].current = "0xb"; service.snapshot = d; content.paneCardKey = "container:1"; content.paneAddress = "0xc"; window.height = 780 }
             })
         }

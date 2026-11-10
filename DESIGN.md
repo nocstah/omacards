@@ -19,6 +19,12 @@ components:
     typography: "{typography.body}"
   choice-row:
     typography: "{typography.body}"
+  toggle:
+    typography: "{typography.body}"
+  button-group:
+    typography: "{typography.body}"
+  notice:
+    typography: "{typography.body}"
   text-field:
     typography: "{typography.body}"
 ---
@@ -67,7 +73,7 @@ overrides. No fixed light or dark palette belongs to OmaCards.
 | Native reference | Use in OmaCards |
 | --- | --- |
 | `Color.accent` | “Showing” labels, diagrams for visible faces, and the inherited control accent input. |
-| `Color.urgent` | Helper failure notices and saved-library errors. |
+| `Color.urgent` | Error notices, as the tint and outline of [Notice.qml](Notice.qml), and the mark of a failed install step. Never the colour of the words themselves. |
 
 ### Neutral
 
@@ -209,32 +215,70 @@ the highlighted row and activated answer agree. In the saved library, focus
 stays in search while arrows change its selected result; Enter performs that
 result's stated open/go-to action.
 
+Choice rows take the host CursorSurface contract: the highlight follows focus
+only. Real pointer movement, filtered by the panel's `Ui.PointerMoveGate`,
+moves focus to the row instead of painting a second highlight. While someone
+types or records a shortcut the gate is paused, so the pointer never takes
+focus from a field. A row that is one choice of several (open cards, motion
+transitions) is `checkable` and reports itself as a checked or unchecked radio
+button.
+
+### Toggles and button groups
+
+On/off preferences (Accent ring, Card keys beside a card) use the host
+[Ui.Toggle](/usr/share/omarchy/shell/Ui/Toggle.qml) with popup text as its
+foreground, and report themselves as a checked or unchecked checkbox. A choice
+among two to five short values (card appearance, app spacing, fullscreen
+divider, speed, and a face's Beside/Stacked layout) uses the host
+[Ui.ButtonGroup](/usr/share/omarchy/shell/Ui/ButtonGroup.qml): one Tab stop,
+Left/Right or h/l to choose, Enter or Space to apply. Its accessible name is
+its heading plus the selected value. The selected value's explanation sits
+under the group in `Style.font.bodySmall`, so long descriptions never sit inside
+a chip. A section starts with the host `Ui.PanelSectionHeader`. A group that
+the installed Hyprflip cannot apply dims to 0.45, like a disabled action.
+
 ### Fields
 
-Search, card naming, and exact duration use
-[Ui.TextField](/usr/share/omarchy/shell/Ui/TextField.qml) directly. Font, padding,
+Search, card naming, and exact duration use [KeyField.qml](KeyField.qml), a
+read-only [Ui.TextField](/usr/share/omarchy/shell/Ui/TextField.qml) that applies
+typed keys itself, so no hidden field reads the clipboard. Font, padding,
 selection, placeholder, focus fill, and border behavior remain host-owned.
 Each field exposes an accessible name. Search is the Cards entry focus; naming
-questions focus the name field. Exact duration is revealed by “Exact time…”
-and constrained to the backend's supported input range in the shipped UI.
+questions focus the name field. Escape in a search that has text clears it
+before it closes anything. Exact duration is revealed by “Exact time…” and
+constrained to the backend's supported input range in the shipped UI.
 
 ### Two-face editor
 
 Front and Back are stacked sections separated by native rules. Each header
 combines a name, pane diagram, app count, and “Showing” when visible. Pane rows
-show app icons and names. Selecting a visible pane reveals its inline action
-group and the consequence “Removal keeps the app open.” Hidden faces offer an
-explicit “Show and edit” action.
+show app icons and names. Selecting a visible pane opens its actions (Replace,
+Other side, Remove, Earlier, Later) directly under its row, indented to the
+row's title (`Style.space(38)`), and each action's accessible name includes the
+app (“Remove Telegram”). Actions for the whole face (Add app, Beside/Stacked,
+Equal sizes) follow the face's last row. Actions for the whole card (Add as new
+face, Save as, Manage saved, Reopen missing apps, Ungroup card) close the page.
+A disabled action says why in its tooltip (“Fold the card first”, “Back is
+full”).
+
+A hidden face's pane rows say “Select to show Back”; choosing one shows that
+face and selects the app. The face also keeps an explicit “Show and edit”
+action.
+
+Ungroup ends the card, so it asks once, in place: “Ungroup “Name”? Its apps stay
+open as separate windows.” with Ungroup and Keep card, focus on Keep card, and
+Escape keeping the card.
 
 Pane selection is keyed by the card key and pane address, not the snapshot
 object identity. It survives refresh while that card and pane still exist.
-Changing target, removing the pane, leaving Edit, or issuing an edit clears it
-as implemented in [CardsContent.qml](CardsContent.qml). These are in-memory UI
-rules; they do not promise selection persistence across shell restarts.
+Arranging a face (Earlier, Later, Beside, Stacked, Equal sizes, showing a face)
+keeps it; replacing, moving, removing, adding, ungrouping, or leaving Edit
+clears it, as implemented in [CardsContent.qml](CardsContent.qml). These are
+in-memory UI rules; they do not promise selection persistence across shell
+restarts.
 
-**The Explicit Target Rule.** Inspecting a hidden face does not activate it.
-Show the named activation action before editing that face, and keep pane actions
-attached to the selected pane.
+**The Explicit Target Rule.** Keep pane actions attached to the selected pane,
+and say what choosing a hidden face's row will do before it does it.
 
 ### Bar entry and navigation
 
@@ -245,16 +289,47 @@ working marks the button active; the tooltip explains its action/progress.
 
 Cards, Edit, and Motion share a heading row with text navigation. Ordinary
 opening starts at Cards; the supported summon routes can enter another view.
-Escape backs out, cancels an active question, or closes from Cards. Search,
-pane selection, and exact-time disclosure are UI state, not a new preferences
-store. `Service.qml` delegates saved-card and motion writes to Hyprflip; this
-design record does not certify backend persistence or restart behavior.
+Search, pane selection, and exact-time disclosure are UI state, not a new
+preferences store. `Service.qml` delegates saved-card and motion writes to
+Hyprflip; this design record does not certify backend persistence or restart
+behavior.
+
+### Keyboard
+
+The page sits in the host `Ui.PanelKeyCatcher`, so keys a control does not use
+itself reach one panel-wide handler:
+
+| Keys | Effect |
+| --- | --- |
+| Down/Up, j/k | Move to the nearest control in the next or previous row, keeping the column. The first press lands on the first or last control. |
+| Right/Left, l/h | Move to the neighbour in the same row (a row's Preview or Manage action). Inside a button group they choose its value instead. |
+| Tab, Shift+Tab | Every control in reading order, wrapping within the panel. Host panels use Tab to switch panels; OmaCards has too many controls for that, and its bar button stays one click away. |
+| Enter, Space | Activate the focused control. |
+| Escape | Clear a search, cancel a question or an Ungroup confirmation, go back a page, then close. |
+| Ctrl+Up/Down, Ctrl+k/j | In Edit, move the selected app earlier or later. |
+| Delete, x | In Edit, remove the selected app whose row has focus. |
+
+Focus stays put through a saved preference and comes back to the control that
+was used when an edit returns the panel, or when a refresh rebuilds the rows.
+Recording a shortcut blocks all of this until it ends.
 
 ### Feedback
 
 Backend questions, opening progress, cancellation, and actionable failures use
-the same popup and local labels. Progress offers one Cancel action and explains
-that opened apps stay open. When no card is selected, saved cards come before
+the same popup and local labels. Saving a preference keeps the page in place
+and shows “Saving…” beside the heading. Other operations replace the page with
+a progress title that names the work (“Opening “Research”…”) and one Cancel
+action that explains opened apps stay open. Installing Hyprflip shows its steps
+and says the panel can close while it continues; it cannot be cancelled. A
+finished install says so in the notice and drops its steps; a failed one keeps
+them, with the command to run selectable and focusable. The panel refreshes
+itself while open, so there is no Refresh action.
+
+A first run without Hyprflip is a next step, not an error: plain text and an
+Install action. An error uses [Notice.qml](Notice.qml): a callout tinted and
+outlined with `Color.urgent` through the host's selected-fill and normal-border
+tokens, with the words in full-contrast popup text, so it reads as an error by
+shape as well as hue. Saved-library and shortcut errors use the same callout. When no card is selected, saved cards come before
 a separate creation section that names the front app and offers a nearby
 “Choose app for back…” action. With no saved cards, creation leads and search
 is hidden. The footer names the Edit and Saved cards shortcuts explicitly.
@@ -271,6 +346,8 @@ editing understandable without changing the surface's visual system.
 - **Do** use full-opacity popup text for local functional explanations.
 - **Do** pair face state with the word “Showing,” app names, and pane diagrams.
 - **Do** preserve keyboard activation, visible focus, and scrolling to targets.
+- **Do** reach for the host's Toggle and ButtonGroup before building a control from rows or buttons.
+- **Do** name the target in an action's accessible name and the reason in a disabled action's tooltip.
 - **Do** verify narrow, scaled, light, and dark host configurations when extending the popup.
 
 ### Don't:
@@ -279,4 +356,5 @@ editing understandable without changing the surface's visual system.
 - **Don't** invent CSS tokens or HTML previews that claim to reproduce live QML bindings.
 - **Don't** use glyph icons as a new app-control convention; preserve the existing host bar integration separately.
 - **Don't** treat a refreshed snapshot object as a different selected card or pane.
+- **Don't** colour a whole paragraph with `Color.urgent`, or signal an error by colour alone.
 - **Don't** imply that UI selection or documented tokens create durable preferences.

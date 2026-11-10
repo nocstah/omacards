@@ -20,7 +20,7 @@ Scope {
     // OmaCards change. Raise it only when the panel needs newer backend behavior.
     readonly property string hyprflipMinimum: "0.3.0-rc.16"
     readonly property string hyprflipSource: Quickshell.env("HOME") + "/.local/share/omacards/hyprflip"
-    readonly property string installer: Qt.resolvedUrl("install_hyprflip.py").toString().replace(/^file:\/\//, "")
+    readonly property string installer: Quickshell.env("OMACARDS_INSTALLER") || Qt.resolvedUrl("install_hyprflip.py").toString().replace(/^file:\/\//, "")
     // ready, missing (no helper answered), outdated (old protocol, or a
     // recorded install older than hyprflipMinimum) or unloaded (core not loaded).
     property string hyprflipState: "ready"
@@ -32,6 +32,11 @@ Scope {
     property var missingPackages: []
     property bool awaitingPackages: false
     readonly property bool installing: installProcess.running
+    // Preference saves change no window or focus, so the panel stays open with
+    // its page in place while the helper writes them. Card operations hand off
+    // focus: the panel closes and comes back when they finish.
+    readonly property var quietActions: ["transition", "duration", "appearance", "spacing", "accent", "nearby", "divider", "shortcut"]
+    property bool quiet: false
     property var snapshot: ({available: false, cards: [], saved: [], capabilities: {}})
     property var context: null
     property var owner: null
@@ -50,6 +55,10 @@ Scope {
     property bool returnToPanel: false
     property bool preserveContext: false
     property bool returning: false
+    // The panel came back by itself after an edit, rather than being opened.
+    property bool resumed: false
+    // The last snapshot text, so an unchanged refresh leaves the rows (and focus) alone.
+    property string snapshotText: ""
     readonly property bool busy: operationProcess.running || installProcess.running
     readonly property bool refreshing: snapshotProcess.running
     readonly property var cardsHere: (snapshot.cards || []).filter(c => context && c.workspace === context.workspace)
@@ -80,6 +89,7 @@ Scope {
         owner = widget
         if (busy) { widget.reveal(); return }
         pendingOwner = widget
+        resumed = false
         pendingPage = requestedPage
         requestedPage = "cards"
         notice = ""
@@ -92,10 +102,13 @@ Scope {
         snapshotProcess.running = true
     }
     function acceptSnapshot(raw) {
+        if (preserveContext && raw === snapshotText && !pendingOwner && snapshot.available) return
+        snapshotText = ""
         if (!raw.trim()) {
             snapshot = {available: false, cards: [], saved: [], capabilities: {}}
             hyprflipState = "missing"
-            failed = true
+            // Expected on first use, so it is a next step rather than an error.
+            failed = false
             notice = "Hyprflip is not installed. Install it here; if build tools are missing, OmaCards opens a terminal to install them."
             return revealPending()
         }
@@ -104,10 +117,11 @@ Scope {
             if (data.protocol !== 1) {
                 snapshot = {available: false, cards: [], saved: [], capabilities: {}}
                 hyprflipState = "outdated"
-                failed = true
+                failed = false
                 notice = "This OmaCards needs a newer Hyprflip. Update it here."
                 return revealPending()
             }
+            snapshotText = raw
             hyprflipState = !data.available ? "unloaded"
                 : hyprflipCurrent(data) ? "ready" : "outdated"
             snapshot = data
@@ -122,7 +136,7 @@ Scope {
             snapshot = {available: false, cards: [], saved: [], capabilities: {}}
             hyprflipState = "missing"
             failed = true
-            notice = "The Hyprflip helper did not answer. Reinstall Hyprflip here, then refresh Cards."
+            notice = "The Hyprflip helper did not answer. Reinstall Hyprflip here."
             console.warn("[omacards] " + error)
         }
         revealPending()
@@ -131,6 +145,7 @@ Scope {
         if (pendingOwner) {
             const widget = pendingOwner
             pendingOwner = null
+            resumed = returning
             if (returning) {
                 returning = false
                 const expected = operation && operation.target
@@ -147,13 +162,15 @@ Scope {
         if (busy || refreshing || !snapshot.available || !context) return
         const request = Object.assign({protocol: 1, action: action, context: context}, extra || {})
         operation = request
+        resumed = false
         completed = false
         cancelled = false
         failed = false
         notice = ""
         question = null
         opening = null
-        returnToPanel = ["edit", "manage", "transition", "duration", "preview", "shortcut", "floating", "appearance", "spacing", "accent", "nearby", "divider", "fullscreen"].indexOf(action) >= 0
+        quiet = quietActions.indexOf(action) >= 0
+        returnToPanel = !quiet && ["edit", "manage", "preview", "floating", "fullscreen"].indexOf(action) >= 0
         operationProcess.command = ["python3", backend, "run", "--request", JSON.stringify(request)]
         operationProcess.running = true
     }
@@ -217,8 +234,9 @@ Scope {
         question = null
         operationProcess.write(JSON.stringify({reply: id, value: value}) + "\n")
     }
+    // Only card operations can be cancelled; an install runs to the end.
     function cancel() {
-        if (!busy || cancelled) return
+        if (!operationProcess.running || cancelled) return
         cancelled = true
         returnToPanel = false
         question = null
@@ -236,6 +254,7 @@ Scope {
         try {
             const message = JSON.parse(line)
             if (message.type === "handoff") {
+                if (quiet) { operationProcess.write(JSON.stringify({resume: message.id}) + "\n"); return }
                 if (owner) owner.dismiss()
                 // KeyboardPanel releases its grab as soon as open becomes false.
                 Qt.callLater(function() {
@@ -254,10 +273,12 @@ Scope {
                 failed = message.type === "error"
                 if (failed) returnToPanel = true
                 if (message.type === "cancelled") returnToPanel = owner && owner.opened
+                // A quiet save never closed the panel, so there is nothing to bring back.
+                if (quiet) returnToPanel = false
             } else throw new Error("Unknown helper response")
         } catch (error) {
             failed = true
-            notice = "The helper returned an unreadable response. Refresh Cards."
+            notice = "The card helper sent a reply OmaCards cannot read. Try again; if it keeps happening, update Hyprflip."
             cancel()
             console.warn("[omacards] " + error)
         }
@@ -317,8 +338,8 @@ Scope {
             cancelTimer.stop()
             if (!root.completed && !root.cancelled) {
                 root.failed = true
-                root.notice = "The card helper stopped. Refresh Cards and try again."
-                root.returnToPanel = true
+                root.notice = "The card helper stopped before finishing. Try again."
+                root.returnToPanel = !root.quiet
                 console.warn("[omacards] helper exit " + exitCode + ": " + operationErrors.text.slice(0, 2000))
             }
             root.question = null
