@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.0-rc.20 — 2026-11-10
+
+- Hyprflip 0.3.0-rc.16 or any later release counts as current, so a newer
+  Hyprflip is no longer offered as an "update" back to the pinned one, and
+  Hyprflip-only releases need no OmaCards change. Install and Update still
+  fetch the tested commit below. Installs from Hyprflip releases that record
+  only a commit count as current when it is that commit.
+- Pin Hyprflip to [`v0.3.0-rc.17`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.17)
+  (`5420498f1cce0295ec03c65ea0a81de2ab350448`), which records the release it
+  installs, and reveal slides. Helper protocol 1 is unchanged.
+
 ## 0.2.0-rc.19 — 2026-11-09
 
 - Faces show their own names (such as Mail or Code) when they have one, in

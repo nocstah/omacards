@@ -99,7 +99,7 @@ ShellRoot {
                 }
                 if (next === "install-progress" || next === "install-waiting") {
                     service.installSteps = [
-                        {event: "step", id: "download", title: "Download the pinned Hyprflip release", status: "ok", detail: "Hyprflip v0.3.0-rc.16"},
+                        {event: "step", id: "download", title: "Download the pinned Hyprflip release", status: "ok", detail: "Hyprflip v0.3.0-rc.17"},
                         {event: "step", id: "check", title: "Check prerequisites", status: "failed", detail: "Missing cmake, ninja", fix: "sudo pacman -S --needed cmake ninja"}]
                     service.missingPackages = service.packagesFrom(service.installSteps[1].fix)
                     service.awaitingPackages = next === "install-waiting"
@@ -107,7 +107,25 @@ ShellRoot {
                     if (service.packagesFrom("sudo pacman -S --needed cmake; reboot").length || service.packagesFrom("sudo pacman -S --needed evil").length)
                         console.error("packagesFrom accepted an unexpected command")
                 }
-                if (next === "outdated") service.hyprflipState = "outdated"
+                if (next === "outdated") {
+                    service.hyprflipState = "outdated"
+                    const pin = service.hyprflipPin, other = "a".repeat(40)
+                    const cases = [
+                        [{installed_release: service.hyprflipMinimum, installed_commit: other}, true],
+                        [{installed_release: "0.3.0-rc.16", installed_commit: other}, true],
+                        [{installed_release: "0.3.0"}, true],
+                        [{installed_release: "0.4.0-rc.1"}, true],
+                        [{installed_release: "0.3.0-rc.9", installed_commit: pin}, false],
+                        [{installed_release: "0.2.0"}, false],
+                        [{installed_release: "bogus"}, false],
+                        [{installed_commit: pin}, true],
+                        [{installed_commit: other}, false],
+                        [{}, true]]
+                    for (const [data, expected] of cases)
+                        if (service.hyprflipCurrent(data) !== expected) console.error("hyprflipCurrent wrong for " + JSON.stringify(data))
+                    if (service.compareReleases("0.3.0-rc.10", "0.3.0-rc.9") !== 1 || service.compareReleases("0.3.0-rc.16", "0.3.0") !== -1)
+                        console.error("compareReleases misorders releases")
+                }
                 if (next === "refused") {
                     window.width = 340; window.height = 550; Style.spacingScale = 1; Style.fontBaseSize = 12
                     service.failed = true

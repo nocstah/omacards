@@ -12,13 +12,17 @@ Scope {
     property string omarchyPath: ""
     readonly property string pluginId: "io.github.nocstah.omacards"
     readonly property string backend: Quickshell.env("OMACARDS_BACKEND") || (Quickshell.env("HOME") + "/.local/lib/hyprflip/control.py")
-    // The Hyprflip commit this OmaCards version is built and tested against.
-    // Keep it equal to the pin in README.md.
-    readonly property string hyprflipPin: "f9fcd81fdb8b50ec7de0c940836d8029aad53009"
+    // The Hyprflip commit Install and Update fetch: the one this OmaCards
+    // version is built and tested against. Keep it equal to the pin in README.md.
+    readonly property string hyprflipPin: "5420498f1cce0295ec03c65ea0a81de2ab350448"
+    // The oldest Hyprflip release this panel works with. An install recording
+    // this release or a later one is current, so Hyprflip-only releases need no
+    // OmaCards change. Raise it only when the panel needs newer backend behavior.
+    readonly property string hyprflipMinimum: "0.3.0-rc.16"
     readonly property string hyprflipSource: Quickshell.env("HOME") + "/.local/share/omacards/hyprflip"
     readonly property string installer: Qt.resolvedUrl("install_hyprflip.py").toString().replace(/^file:\/\//, "")
     // ready, missing (no helper answered), outdated (old protocol, or a
-    // recorded install that differs from the pin) or unloaded (core not loaded).
+    // recorded install older than hyprflipMinimum) or unloaded (core not loaded).
     property string hyprflipState: "ready"
     property var installSteps: []
     property bool installOk: false
@@ -55,6 +59,22 @@ Scope {
         .map(c => Math.round(c * 255).toString(16).padStart(2, "0")).join("").toUpperCase()
     onAccentHexChanged: accentSync.restart()
 
+    // Orders releases such as 0.3.0-rc.13 < 0.3.0-rc.16 < 0.3.0; null if malformed.
+    function compareReleases(a, b) {
+        const parse = v => { const m = /^(\d+)\.(\d+)\.(\d+)(?:-rc\.(\d+))?$/.exec(v || ""); return m ? [+m[1], +m[2], +m[3], m[4] === undefined ? Infinity : +m[4]] : null }
+        const x = parse(a), y = parse(b)
+        if (!x || !y) return null
+        for (let i = 0; i < 4; i++) if (x[i] !== y[i]) return x[i] < y[i] ? -1 : 1
+        return 0
+    }
+    // Whether a recorded install is good enough. Installs recording a release
+    // compare it with the minimum, so a newer Hyprflip is never offered as an
+    // "update" back to the pin. Older bootstraps recorded only a commit, which
+    // cannot be ordered here, so that must equal the pin. Hand installs record neither.
+    function hyprflipCurrent(data) {
+        if (data.installed_release) { const order = compareReleases(data.installed_release, hyprflipMinimum); return order !== null && order >= 0 }
+        return !data.installed_commit || data.installed_commit === hyprflipPin
+    }
     function prepareOpen(widget) {
         if (owner && owner !== widget) owner.dismiss()
         owner = widget
@@ -89,7 +109,7 @@ Scope {
                 return revealPending()
             }
             hyprflipState = !data.available ? "unloaded"
-                : data.installed_commit && data.installed_commit !== hyprflipPin ? "outdated" : "ready"
+                : hyprflipCurrent(data) ? "ready" : "outdated"
             snapshot = data
             if (!preserveContext || !context) context = data.context
             const here = (data.cards || []).filter(c => context && c.workspace === context.workspace)
