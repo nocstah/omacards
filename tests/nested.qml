@@ -170,6 +170,8 @@ ShellRoot {
                 harness.assertThat(!card.unfolded, "card folded before choosing a hidden app")
                 harness.movedAddress = card.faces[1].panes[1].address
                 content.choosePane(1, harness.movedAddress, false)
+                harness.assertThat(!!service.operation && service.operation.action === (service.snapshot.capabilities.show_face ? "face" : "flip"),
+                                   "a hidden app is shown with the face action when the helper has it")
                 harness.phase = 19; return
             }
             if (harness.phase === 19) {

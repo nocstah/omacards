@@ -238,8 +238,10 @@ and select another open app. Floating apps are resized to fit automatically;
 you do not need to arrange them first or confirm a separate tiling step.
 Saved cards appear separately above creation;
 you can open them without creating anything. If several cards share a workspace,
-choose one from the list. Hidden faces offer **Show and edit Front/Back**;
-that action turns the card before offering edits.
+choose one from the list. In Edit, choosing an app on a hidden face shows that
+face and selects the app, and each hidden face offers **Show** for itself. With
+a Hyprflip older than 0.3.0-rc.19, a third or fourth face's apps wait for
+**Show and edit**, which turns the card before offering edits.
 
 In Edit, select a visible app to reveal its pane actions. **Manage saved** offers
 Update when the running card can be saved. Ordinary live edits leave the saved

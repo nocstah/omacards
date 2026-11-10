@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Choosing an app on any hidden face, including a third or fourth one, shows
+  that face, focuses the app and keeps it selected, with a Hyprflip helper
+  that has the face action (`capabilities.show_face`). A hidden face's own
+  action becomes **Show Face 3** and no longer opens Hyprflip's edit chooser.
+  Older helpers keep rc.22's behaviour.
+
 ## 0.2.0-rc.23 — 2026-11-10
 
 - With a Hyprflip helper that reports `ungroup_any_face`, Ungroup goes through

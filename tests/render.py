@@ -34,5 +34,5 @@ with tempfile.TemporaryDirectory(prefix='omacards-render-') as directory:
     assert not unexpected, '\n'.join(unexpected)
     assert result.returncode == 0 and 'OMACARDS_UI_CAPTURE_OK' in log, log
     checked = {line.split('OMACARDS_CHECKED ')[1].strip() for line in log.splitlines() if 'OMACARDS_CHECKED ' in line}
-    assert checked == {'settings', 'pane-edit', 'motion-refresh', 'ungroup-confirm', 'applied', 'worked', 'installed'}, 'checks that did not run: ' + log
+    assert checked == {'settings', 'pane-edit', 'multi-face-edit', 'motion-refresh', 'ungroup-confirm', 'applied', 'worked', 'installed'}, 'checks that did not run: ' + log
     print('Captured Cards, Edit, Motion, choices, entry states, narrow, scaled and theme fixtures:', captures)

@@ -66,6 +66,7 @@ FocusScope {
     function actionTitle(operation) {
         const titles = {create: "Creating your card…", open: "Opening your saved card…", manage: "Updating saved cards…",
                         edit: "Editing your card…", preview: "Previewing the transition…", flip: "Flipping your card…"}
+        if (operation && operation.action === "face") return "Showing " + faceName(operation.face) + "…"
         return (operation && titles[operation.action]) || "Working on your card…"
     }
     function focusEntry() {
@@ -90,13 +91,15 @@ FocusScope {
         if (["previous", "next", "horizontal", "vertical", "balance", ""].indexOf(intent) < 0) paneAddress = ""
         service.edit(intent, face, pane)
     }
-    // An app on a two-face card's hidden side: flip to it and keep it
-    // selected. An empty edit intent would open Hyprflip's whole edit chooser,
-    // and Flip cannot reach a chosen face of three or more, so those rows wait
+    // An app on a hidden face: show that face and keep the app selected. An
+    // empty edit intent would open Hyprflip's whole edit chooser instead.
+    // Helpers with the face action (capabilities.show_face) reach any face;
+    // with older ones a two-face card flips, and a third or fourth face waits
     // for "Show and edit".
     function choosePane(faceIndex, address, showing) {
         paneCardKey = card.key
         if (showing) paneAddress = paneAddress === address ? "" : address
+        else if (canShowFace) { paneAddress = address; service.cardAction("face", {face: faceIndex, pane: address}, true) }
         else if (!manyFaces) { paneAddress = address; service.cardAction("flip", {}, true) }
     }
     function selectedPane() {
@@ -126,6 +129,7 @@ FocusScope {
     }
     function nextFace(index) { return card ? (index + 1) % card.faces.length : 0 }
     readonly property bool manyFaces: !!card && card.faces.length > 2
+    readonly property bool canShowFace: !!caps.show_face
     function groupName(header, options, value) {
         const option = options.find(o => String(o.value) === String(value))
         return header + ", " + (option ? option.label + " selected" : "none selected")
@@ -805,10 +809,11 @@ FocusScope {
                                         showIcon: true
                                         appIcon: paneBlock.modelData.icon || ""
                                         detail: [paneBlock.modelData.title !== paneBlock.modelData.label ? paneBlock.modelData.title : "",
-                                                 face.showing ? "" : root.manyFaces ? "On " + root.faceName(face.modelData.index) : "Select to flip to " + root.faceName(face.modelData.index)].filter(Boolean).join(" · ")
+                                                 face.showing ? "" : root.canShowFace ? "Select to show " + root.faceName(face.modelData.index)
+                                                     : root.manyFaces ? "On " + root.faceName(face.modelData.index) : "Select to flip to " + root.faceName(face.modelData.index)].filter(Boolean).join(" · ")
                                         selected: paneBlock.chosen
                                         pointerGate: gate
-                                        enabled: face.showing || !root.manyFaces
+                                        enabled: face.showing || root.canShowFace || !root.manyFaces
                                         onActivated: root.choosePane(face.modelData.index, paneBlock.modelData.address, face.showing)
                                     }
                                     // The selected app's own actions sit under its row.
@@ -892,7 +897,12 @@ FocusScope {
                                     onClicked: root.edit("balance", face.modelData.index, null)
                                 }
                             }
-                            Action { text: "Show and edit " + root.faceName(face.modelData.index); visible: !face.showing; onClicked: root.edit("", face.modelData.index, null) }
+                            Action {
+                                text: (root.canShowFace ? "Show " : "Show and edit ") + root.faceName(face.modelData.index)
+                                visible: !face.showing
+                                onClicked: root.canShowFace ? root.service.cardAction("face", {face: face.modelData.index}, true)
+                                    : root.edit("", face.modelData.index, null)
+                            }
                         }
                     }
                     Label {

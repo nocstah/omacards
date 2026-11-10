@@ -261,11 +261,13 @@ face, Save as, Manage saved, Reopen missing apps, Ungroup card) close the page.
 A disabled action says why in its tooltip (“Fold the card first”, “Back is
 full”).
 
-On a two-face card, a hidden face's pane rows say “Select to flip to Back”;
-choosing one flips the card and keeps the app selected, without opening
-Hyprflip's edit chooser. On a card with three or more faces the hidden rows are
-disabled and say “On Back”, because a flip would not land on that face. Every
-hidden face keeps an explicit “Show and edit” action.
+A hidden face's pane rows say “Select to show Face 3”; choosing one shows that
+face, focuses the app and keeps it selected, without opening Hyprflip's edit
+chooser. The face action does this on any face (`capabilities.show_face`), and
+the face's own action reads “Show Face 3”. With an older helper, a two-face
+card's hidden rows say “Select to flip to Back” and flip instead; on a card with
+three or more faces they are disabled and say “On Face 3”, because a flip would
+not land on that face, and the face keeps “Show and edit Face 3”.
 
 Ungroup ends the card, so it asks once, in place: “Ungroup “Name”? Its apps stay
 open as separate windows.” with Ungroup and Keep card, focus on Keep card, and

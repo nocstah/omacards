@@ -14,6 +14,13 @@ ShellRoot {
     property var shots: ["cards", "settings", "preferences-narrow", "preferences-light", "preferences-dark", "preferences-scaled", "shortcuts", "shortcut-record", "shortcut-conflict", "settings-narrow", "settings-scaled", "edit", "motion", "motion-refresh", "question", "empty", "narrow", "scaled", "light", "dark", "pane-edit", "library-ungrouped", "no-front", "unselected-card", "long-front", "scaled-entry", "install-missing", "install-progress", "install-waiting", "outdated", "refused", "multi-face", "multi-face-narrow", "multi-face-scaled", "multi-face-edit", "multi-face-remove", "multi-face-edit-narrow", "multi-face-edit-scaled", "edit-add-face", "settings-dark", "error-dark", "ungroup-confirm",
         // In-flight shots come last, each followed by the moment it finishes.
         "applying", "applied", "working", "worked", "installing", "installed"]
+    // The edit page's pane row for an app, enabled or not.
+    function paneRow(item, title) {
+        if (item.title === title && item.detail !== undefined && item.selected !== undefined) return item
+        for (const child of item.children || []) { const found = paneRow(child, title); if (found) return found }
+        if (item.contentItem && item.contentItem !== item) return paneRow(item.contentItem, title)
+        return null
+    }
     function findItem(item, name) {
         if (item.objectName === name) return item
         for (const child of item.children || []) { const found = findItem(child, name); if (found) return found }
@@ -80,6 +87,19 @@ ShellRoot {
             service.snapshot = anyFace
             if (content.ungroupFace !== 1) console.error("Ungroup should use the shown side, not face " + content.ungroupFace)
         }
+        // A hidden third face's apps wait for "Show and edit" on an older
+        // helper; with the face action they can be chosen directly.
+        if (name === "multi-face-edit") {
+            const hidden = () => harness.paneRow(content, "Spotify")
+            if (!hidden() || hidden().enabled || hidden().detail.indexOf("On Face 3") < 0)
+                console.error("Without the face action, Face 3's app should be disabled and say where it is")
+            const d = JSON.parse(JSON.stringify(service.snapshot))
+            d.capabilities.show_face = true
+            service.snapshot = d
+            if (!hidden() || !hidden().enabled || hidden().detail.indexOf("Select to show Face 3") < 0)
+                console.error("With the face action, Face 3's app should be selectable and say it shows Face 3")
+            if (content.actionTitle({action: "face", face: 2}) !== "Showing Face 3…") console.error("The face action's progress title")
+        }
         // A refresh that rebuilds the rows puts focus back on the same row.
         if (name === "motion-refresh" && focusName() !== "title:Slide") console.error("A refresh lost focus: " + focusName())
         // A saved preference keeps the page and the control in focus.
@@ -89,7 +109,7 @@ ShellRoot {
         }
         if (name === "worked" && service.busy) console.error("The fake open did not finish in time")
         if (name === "installed" && service.installing) console.error("The fake install did not finish in time")
-        if (["settings", "pane-edit", "motion-refresh", "ungroup-confirm", "applied", "worked", "installed"].includes(name)) console.log("OMACARDS_CHECKED " + name)
+        if (["settings", "pane-edit", "multi-face-edit", "motion-refresh", "ungroup-confirm", "applied", "worked", "installed"].includes(name)) console.log("OMACARDS_CHECKED " + name)
     }
     Cards.Service { id: service }
     FileView {
