@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.0-rc.24 — 2026-11-10
 
 - Choosing an app on any hidden face, including a third or fourth one, shows
   that face, focuses the app and keeps it selected, with a Hyprflip helper
