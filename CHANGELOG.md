@@ -5,6 +5,11 @@
 - With a Hyprflip helper that reports `ungroup_any_face`, Ungroup goes through
   the shown side even when it holds several apps, so it is never disabled.
   Older helpers keep the one-app-side rule from rc.22.
+- Pin Hyprflip to [`v0.3.0-rc.18`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.18)
+  (`ed61e4f1635df27c8b5e42addabd6ea8713b015c`), which ungroups from any side
+  and brings the core behind Settings' **Card keys beside a card** switch.
+  Hyprflip 0.3.0-rc.16 or later still counts as current; helper protocol 1 is
+  unchanged.
 
 ## 0.2.0-rc.22 — 2026-11-10
 
