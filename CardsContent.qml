@@ -453,6 +453,26 @@ FocusScope {
                     }
                 }
                 Label {
+                    text: "Card keys beside a card"
+                    visible: root.snapshotData.capabilities.nearby === true
+                    Layout.fillWidth: true
+                    font.weight: Font.DemiBold
+                }
+                Repeater {
+                    model: root.snapshotData.capabilities.nearby === true ? [
+                        {value: true, label: "Also beside a card", detail: "From a window in no card, such as a terminal, flip, faces, unfold and peek act on the one card on that workspace"},
+                        {value: false, label: "Only inside a card", detail: "Card keys act only on the card you are in"}
+                    ] : []
+                    delegate: ChoiceRow {
+                        required property var modelData
+                        Layout.fillWidth: true
+                        title: modelData.label
+                        detail: modelData.detail
+                        selected: root.snapshotData.nearby_card === modelData.value
+                        onActivated: root.service.run("nearby", {enabled: modelData.value})
+                    }
+                }
+                Label {
                     text: "Fullscreen divider"
                     visible: root.snapshotData.capabilities.divider === true
                     Layout.fillWidth: true
