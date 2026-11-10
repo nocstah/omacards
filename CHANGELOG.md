@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.0-rc.21 — 2026-11-10
 
 - Settings has a **Card keys beside a card** switch, shown when Hyprflip
   supports it: flip, faces, unfold and peek can also act on the one card on a
