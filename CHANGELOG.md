@@ -7,6 +7,10 @@
   that has the face action (`capabilities.show_face`). A hidden face's own
   action becomes **Show Face 3** and no longer opens Hyprflip's edit chooser.
   Older helpers keep rc.22's behaviour.
+- Pin Hyprflip to [`v0.3.0-rc.19`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.19)
+  (`3830874e3babd559affcb5fe702e14312c06142a`), which adds the face action.
+  Hyprflip 0.3.0-rc.16 or later still counts as current; helper protocol 1 is
+  unchanged.
 
 ## 0.2.0-rc.23 — 2026-11-10
 
