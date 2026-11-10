@@ -25,10 +25,12 @@ FocusScope {
     // The card whose Ungroup is waiting for confirmation.
     property string ungroupKey: ""
     readonly property bool confirmUngroup: ungroupKey !== "" && !!card && card.key === ungroupKey && page === "edit"
-    // Hyprflip's editor ungroups from a side that holds a single app, so send
+    // Newer helpers ungroup from any side (capabilities.ungroup_any_face).
+    // Older ones offer it only on a side that holds a single app, so send
     // Ungroup through one: the shown side if it qualifies, otherwise the first.
     readonly property int ungroupFace: {
         if (!card) return -1
+        if (snapshotData.capabilities && snapshotData.capabilities.ungroup_any_face) return card.active
         const shown = card.faces.find(f => f.index === card.active)
         if (shown && shown.panes.length === 1) return shown.index
         const single = card.faces.find(f => f.panes.length === 1)

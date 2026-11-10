@@ -269,11 +269,12 @@ hidden face keeps an explicit “Show and edit” action.
 
 Ungroup ends the card, so it asks once, in place: “Ungroup “Name”? Its apps stay
 open as separate windows.” with Ungroup and Keep card, focus on Keep card, and
-Escape keeping the card. Hyprflip ungroups through a side with one app, so the
-panel uses the shown side when it has one app and otherwise the first side that
-does. When every side has several apps, Ungroup is disabled and its tooltip
-says to remove apps until a side has one, or to press the card's Ungroup
-shortcut.
+Escape keeping the card. Ungroup goes through the shown side when the helper
+reports `capabilities.ungroup_any_face`. Older helpers ungroup only through a
+side with one app, so the panel then uses the shown side when it has one app and
+otherwise the first side that does. When every side has several apps, Ungroup
+is disabled and its tooltip says to remove apps until a side has one, or to
+press the card's Ungroup shortcut.
 
 Pane selection is keyed by the card key and pane address, not the snapshot
 object identity. It survives refresh while that card and pane still exist.

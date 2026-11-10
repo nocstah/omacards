@@ -73,6 +73,12 @@ ShellRoot {
             crowded.cards[0].faces[0].panes.push(Object.assign({}, crowded.cards[0].faces[1].panes[0], {address: "0xfe"}))
             service.snapshot = crowded
             if (content.ungroupFace !== -1) console.error("Ungroup offered with several apps on every side")
+            // A helper that ungroups from any side takes the shown one.
+            const anyFace = JSON.parse(JSON.stringify(crowded))
+            anyFace.capabilities.ungroup_any_face = true
+            anyFace.cards[0].active = 1
+            service.snapshot = anyFace
+            if (content.ungroupFace !== 1) console.error("Ungroup should use the shown side, not face " + content.ungroupFace)
         }
         // A refresh that rebuilds the rows puts focus back on the same row.
         if (name === "motion-refresh" && focusName() !== "title:Slide") console.error("A refresh lost focus: " + focusName())

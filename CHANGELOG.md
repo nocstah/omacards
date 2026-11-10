@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- With a Hyprflip helper that reports `ungroup_any_face`, Ungroup goes through
+  the shown side even when it holds several apps, so it is never disabled.
+  Older helpers keep the one-app-side rule from rc.22.
+
 ## 0.2.0-rc.22 — 2026-11-10
 
 - Ungroup works again when the shown side has several apps. Hyprflip ungroups

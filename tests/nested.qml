@@ -189,6 +189,9 @@ ShellRoot {
                 harness.assertThat(card.faces[1].panes[0].address === harness.movedAddress, "Ctrl+Up moved the app earlier")
                 harness.assertThat(content.paneAddress === harness.movedAddress && service.page === "edit", "reordering kept the app selected")
                 console.log("PASS edit keeps the selected app through show-face and reorder")
+                // Back shows two apps here, so a current helper ungroups through it.
+                if (service.snapshot.capabilities.ungroup_any_face)
+                    harness.assertThat(content.ungroupFace === 1 && card.faces[1].panes.length === 2, "Ungroup goes through the shown side with two apps")
                 content.ungroupKey = card.key
                 harness.assertThat(content.confirmUngroup, "Ungroup asks first")
                 const confirm = content.focusables().find(i => content.focusKey(i) === "accessibleName:Ungroup “Nested card”")
