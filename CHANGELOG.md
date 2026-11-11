@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+- The README names **Super+Ctrl+Alt+Tab** as the key that changes face, as
+  Hyprflip 0.3.0-rc.20 binds it (F up to 0.3.0-rc.19). The panel reads its
+  shortcut rows from Hyprflip, so Settings shows whichever key is bound.
+- Pin Hyprflip to [`v0.3.0-rc.20`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.20)
+  (`36f97a275ac1f94bd9ff3768a32c95b6197ae247`), which moves changing face to
+  Tab, keeps the gap beside a card while its faces slide, lets apps a slide
+  waits for draw while unseen, and rebuilds cards that name an app on two
+  faces. Hyprflip 0.3.0-rc.16 or later still counts as current; helper
+  protocol 1 is unchanged.
+
 ## 0.2.0-rc.24 — 2026-11-10
 
 - Choosing an app on any hidden face, including a third or fourth one, shows
