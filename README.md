@@ -115,7 +115,7 @@ Updating the panel alone does not update the compositor library.
 
 ## Requirements
 
-This is the **0.2.0-rc.24 preview**. It needs **Hyprflip 0.3.0-rc.16 or later**
+This is the **0.2.0-rc.25 preview**. It needs **Hyprflip 0.3.0-rc.16 or later**
 and was tested with Hyprflip 0.3.0-rc.20.
 
 - Omarchy 4's stock Quickshell bar; tested with 4.0.4.

@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.0-rc.25 — 2026-11-11
 
 - The README names **Super+Ctrl+Alt+Tab** as the key that changes face, as
   Hyprflip 0.3.0-rc.20 binds it (F up to 0.3.0-rc.19). The panel reads its
