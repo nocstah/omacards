@@ -217,7 +217,8 @@ If an update leaves old controls visible, close the panel and run
 With the updated helper, **Super+Ctrl+Alt+C** opens Edit and
 **Super+Ctrl+Alt+L** opens the library. If OmaCards is disabled or unavailable,
 those shortcuts use the original native menus. **O** keeps guided creation and
-fold/unfold, **F** keeps flip, and **Space** keeps hold-to-peek. Super+J is unchanged.
+fold/unfold, **Tab** changes face (**F** up to Hyprflip 0.3.0-rc.19), and
+**Space** keeps hold-to-peek. Super+J is unchanged.
 
 You can also open it from a terminal:
 
