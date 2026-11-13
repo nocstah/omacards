@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- Pin Hyprflip to [`v0.3.0-rc.22`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.22)
+  (`910371b0c97fea19cfa9abb0357ab4a76a6030a4`). With rc.26's pin, updating
+  or reinstalling Hyprflip from the panel over an earlier install stopped at
+  the build step ("Hyprland links Lua 5.5, but pkg-config found Lua 5.4.9"),
+  leaving the installed Hyprflip as it was; rc.22 builds there. Hyprflip 0.3.0-rc.16 or
+  later still counts as current; helper protocol 1 is unchanged.
+
 ## 0.2.0-rc.26 — 2026-11-13
 
 - Pin Hyprflip to [`v0.3.0-rc.21`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.21)
