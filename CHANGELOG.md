@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+- Pin Hyprflip to [`v0.3.0-rc.21`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.21)
+  (`e0cbedd7e91164ae734b39b6af1bbe6e276752aa`), which adds
+  `scripts/uninstall.py` and builds its plugin against the Lua that Hyprland
+  links (5.5 on current Arch). Building it now also needs `readelf`
+  (binutils). Hyprflip 0.3.0-rc.16 or later still counts as current; helper
+  protocol 1 is unchanged.
+- **Install build tools** also accepts `binutils` and `lua54`, the packages
+  Hyprflip 0.3.0-rc.21's prerequisite check can now name, for `readelf` and
+  for a Hyprland that links Lua 5.4.
+
 ## 0.2.0-rc.25 — 2026-11-11
 
 - The README names **Super+Ctrl+Alt+Tab** as the key that changes face, as

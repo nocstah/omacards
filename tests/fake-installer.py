@@ -11,7 +11,7 @@ def emit(**event):
     print(json.dumps(event), flush=True)
 
 
-emit(event='step', id='download', title='Download the pinned Hyprflip release', status='ok', detail='Hyprflip v0.3.0-rc.20')
+emit(event='step', id='download', title='Download the pinned Hyprflip release', status='ok', detail='Hyprflip v0.3.0-rc.21')
 emit(event='step', id='check', title='Check prerequisites', status='ok', detail='Hyprland v0.56.2 with matching headers')
 emit(event='step', id='build', title='Build Hyprflip', status='running')
 time.sleep(float(os.environ.get('OMACARDS_FAKE_DELAY', '0.7')))

@@ -203,13 +203,15 @@ ShellRoot {
                 }
                 if (next === "install-progress" || next === "install-waiting") {
                     service.installSteps = [
-                        {event: "step", id: "download", title: "Download the pinned Hyprflip release", status: "ok", detail: "Hyprflip v0.3.0-rc.20"},
+                        {event: "step", id: "download", title: "Download the pinned Hyprflip release", status: "ok", detail: "Hyprflip v0.3.0-rc.21"},
                         {event: "step", id: "check", title: "Check prerequisites", status: "failed", detail: "Missing cmake, ninja", fix: "sudo pacman -S --needed cmake ninja"}]
                     service.missingPackages = service.packagesFrom(service.installSteps[1].fix)
                     service.awaitingPackages = next === "install-waiting"
                     if (service.missingPackages.join(" ") !== "cmake ninja") console.error("packagesFrom rejected the bootstrap fix")
                     if (service.packagesFrom("sudo pacman -S --needed cmake; reboot").length || service.packagesFrom("sudo pacman -S --needed evil").length)
                         console.error("packagesFrom accepted an unexpected command")
+                    if (service.packagesFrom("sudo pacman -S --needed binutils lua54").join(" ") !== "binutils lua54")
+                        console.error("packagesFrom rejected Hyprflip's readelf and Lua 5.4 packages")
                 }
                 if (next === "outdated") {
                     service.hyprflipState = "outdated"

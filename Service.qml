@@ -14,7 +14,7 @@ Scope {
     readonly property string backend: Quickshell.env("OMACARDS_BACKEND") || (Quickshell.env("HOME") + "/.local/lib/hyprflip/control.py")
     // The Hyprflip commit Install and Update fetch: the one this OmaCards
     // version is built and tested against. Keep it equal to the pin in README.md.
-    readonly property string hyprflipPin: "36f97a275ac1f94bd9ff3768a32c95b6197ae247"
+    readonly property string hyprflipPin: "e0cbedd7e91164ae734b39b6af1bbe6e276752aa"
     // The oldest Hyprflip release this panel works with. An install recording
     // this release or a later one is current, so Hyprflip-only releases need no
     // OmaCards change. Raise it only when the panel needs newer backend behavior.
@@ -28,7 +28,7 @@ Scope {
     property bool installOk: false
     // Build packages Hyprflip's bootstrap reported missing. Only these names
     // may be installed, through Omarchy's own terminal and package helper.
-    readonly property var buildPackages: ["cmake", "ninja", "pkgconf", "gcc", "git", "python", "lua", "libglvnd"]
+    readonly property var buildPackages: ["cmake", "ninja", "pkgconf", "gcc", "binutils", "git", "python", "lua", "lua54", "libglvnd"]
     property var missingPackages: []
     property bool awaitingPackages: false
     readonly property bool installing: installProcess.running
