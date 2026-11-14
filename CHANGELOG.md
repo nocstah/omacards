@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+- Hyprflip's movement shortcuts (Super+Shift+arrows and Super+Shift+1…0
+  move every app in a card together) are installed on a new setup from the
+  panel, when the pinned Hyprflip has them. **Settings → Move whole cards with
+  Omarchy's keys** turns them off or on again. An install from before them
+  is asked once on the Cards page. Updates never switch them on. Both need a
+  Hyprflip helper that reports `capabilities.navigation`; until then they
+  stay hidden.
+
 ## 0.2.0-rc.27 — 2026-11-13
 
 - Pin Hyprflip to [`v0.3.0-rc.22`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.22)

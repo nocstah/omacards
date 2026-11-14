@@ -12,6 +12,8 @@ def emit(**event):
 
 
 emit(event='step', id='download', title='Download the pinned Hyprflip release', status='ok', detail='Hyprflip v0.3.0-rc.22')
+# A first install: OmaCards' installer also asks for the movement shortcuts.
+emit(event='navigation', enabled=True)
 emit(event='step', id='check', title='Check prerequisites', status='ok', detail='Hyprland v0.56.2 with matching headers')
 emit(event='step', id='build', title='Build Hyprflip', status='running')
 time.sleep(float(os.environ.get('OMACARDS_FAKE_DELAY', '0.7')))

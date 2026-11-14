@@ -26,6 +26,9 @@ Scope {
     property string hyprflipState: "ready"
     property var installSteps: []
     property bool installOk: false
+    // A new setup also installs the movement shortcuts (install_hyprflip.py's
+    // navigation event); the finished notice then says where to turn them off.
+    property bool installNavigation: false
     // Build packages Hyprflip's bootstrap reported missing. Only these names
     // may be installed, through Omarchy's own terminal and package helper.
     readonly property var buildPackages: ["cmake", "ninja", "pkgconf", "gcc", "binutils", "git", "python", "lua", "lua54", "libglvnd"]
@@ -35,7 +38,7 @@ Scope {
     // Preference saves change no window or focus, so the panel stays open with
     // its page in place while the helper writes them. Card operations hand off
     // focus: the panel closes and comes back when they finish.
-    readonly property var quietActions: ["transition", "duration", "appearance", "spacing", "accent", "nearby", "divider", "shortcut"]
+    readonly property var quietActions: ["transition", "duration", "appearance", "spacing", "accent", "nearby", "divider", "shortcut", "navigation"]
     property bool quiet: false
     property var snapshot: ({available: false, cards: [], saved: [], capabilities: {}})
     property var context: null
@@ -186,6 +189,7 @@ Scope {
         if (busy || refreshing) return
         installSteps = []
         installOk = false
+        installNavigation = false
         missingPackages = []
         awaitingPackages = false
         failed = false
@@ -203,6 +207,8 @@ Scope {
                 steps.splice(index < 0 ? steps.length : index, 0, message)
                 installSteps = steps
                 if (message.status === "failed") missingPackages = packagesFrom(message.fix || "")
+            } else if (message.event === "navigation") {
+                installNavigation = message.enabled === true
             } else if (message.event === "done") {
                 installOk = message.ok === true
             }
@@ -296,7 +302,9 @@ Scope {
         onExited: (exitCode, exitStatus) => {
             const failure = root.installSteps.find(s => s.status === "failed")
             root.failed = !root.installOk
-            root.notice = root.installOk ? "Hyprflip is installed."
+            root.notice = root.installOk ? (root.installNavigation
+                    ? "Hyprflip is installed. Super+Shift+arrows and Super+Shift+1…0 now move a whole card; turn this off in Settings."
+                    : "Hyprflip is installed.")
                 : failure ? failure.title + " failed." : "Installing Hyprflip stopped unexpectedly."
             if (!root.installOk) console.warn("[omacards] installer exit " + exitCode + ": " + installErrors.text.slice(0, 2000))
             Qt.callLater(function() { root.refresh(false) })

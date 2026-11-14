@@ -69,8 +69,9 @@ each app controls its own documents, browser tabs and login state.
   card. Apps are not told they are fullscreen, so browsers keep their toolbars.
 - **Settings:** Classic tabs or an experimental card frame, Desktop or Compact
   spacing, an optional accent ring in your theme's color, whether card keys
-  also work from a window beside a card, motion, and editable keyboard
-  shortcuts with conflict checks and per-action defaults.
+  also work from a window beside a card, whether Omarchy's move keys move
+  whole cards, motion, and editable keyboard shortcuts with conflict checks
+  and per-action defaults.
 - **Motion:** seven transitions, individual previews, speed presets and exact
   duration. Dissolve and Portal are experimental. Settings apply to all cards.
 - **Keyboard:** arrows or h/j/k/l move between controls, Tab reaches every
@@ -132,6 +133,16 @@ shows **Install Hyprflip** or **Update Hyprflip**. It fetches the exact commit
 below into `~/.local/share/omacards/hyprflip`, verifies it, and runs Hyprflip's
 `scripts/bootstrap.py`, which checks the prerequisites, builds, self-tests and
 installs the core and helper. Each step appears in the panel.
+
+A new setup also installs Hyprflip's movement shortcuts, when the pinned
+Hyprflip has them: **Super+Shift+arrows** and **Super+Shift+1…0**
+(**Super+Shift+Alt+1…0** without following) then move every app in a card
+together, and windows in no card move as Omarchy's keys move them. They take
+over Omarchy's bindings for those keys, including any of your own. Turn them
+off in **Settings → Move whole cards with Omarchy's keys**; turning them off
+removes them from your Hyprland configuration and keeps a copy you edited in a
+backup. An install from before them asks once on the Cards page. Updates never
+switch them on, so your choice stays.
 
 A stock Omarchy system lacks two build tools, CMake and Ninja. When the
 bootstrap reports missing build packages, the panel offers **Install build
@@ -293,6 +304,7 @@ checkout with `manifest.json` at the root. Run development checks from that chec
 
 ```sh
 omarchy plugin validate .
+python3 tests/installer_test.py
 python3 tests/render.py
 python3 tests/run-native.py /tmp/oc-demo/session.json \
   --backend /path/to/hyprflip/scripts/control.py --dwindle

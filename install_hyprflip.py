@@ -7,12 +7,19 @@ Prints one JSON event per line, in the format of Hyprflip's
 scripts/bootstrap.py --json, which it runs after the download step:
 
   {"event": "step", "id": "download", "title": "...", "status": "running|ok|failed", "detail": "..."}
+  {"event": "navigation", "enabled": true}
   {"event": "done", "ok": false}
+
+On a new setup, with no Hyprflip install recorded and no movement-shortcut
+choice made, the bootstrap also installs the movement shortcuts that move a
+whole card (--navigation), when the pinned Hyprflip has them; the navigation
+event says so. Updates never pass it, so a choice made in Settings stays.
 
 Only the exact pinned commit is built. A source directory with local changes is
 left alone. Nothing here uses sudo.
 """
 import json
+import os
 from pathlib import Path
 import re
 import subprocess
@@ -56,12 +63,28 @@ def download(pin, source):
         return pin[:12]
 
 
+def new_setup(environment=os.environ):
+    """Whether Hyprflip was never installed here, or was uninstalled since: no
+    recorded release or commit, and no movement-shortcut choice."""
+    home = Path(environment.get('HOME') or Path.home())
+    state = Path(environment.get('XDG_STATE_HOME') or home / '.local/state') / 'hyprflip'
+    return not any((state / name).exists() for name in ('installed-release', 'installed-commit', 'navigation-choice'))
+
+
+def bootstrap_arguments(source, new):
+    """The bootstrap's arguments; --navigation only for a new setup, and only
+    from a Hyprflip whose bootstrap has it."""
+    offers = '--navigation' in (source / 'scripts/bootstrap.py').read_text(errors='replace')
+    return ['--json', '--navigation'] if new and offers else ['--json']
+
+
 def main():
     if len(sys.argv) != 3 or not re.fullmatch(r'[0-9a-f]{40}', sys.argv[1]):
         emit(event='step', id='download', title=TITLE, status='failed', detail='OmaCards passed an invalid Hyprflip pin')
         emit(event='done', ok=False)
         return 2
     pin, source = sys.argv[1], Path(sys.argv[2]).expanduser()
+    new = new_setup()
     emit(event='step', id='download', title=TITLE, status='running')
     try:
         release = download(pin, source)
@@ -70,7 +93,10 @@ def main():
         emit(event='done', ok=False)
         return 1
     emit(event='step', id='download', title=TITLE, status='ok', detail=f'Hyprflip {release}')
-    return subprocess.run([sys.executable, 'scripts/bootstrap.py', '--json'], cwd=source).returncode
+    arguments = bootstrap_arguments(source, new)
+    if '--navigation' in arguments:
+        emit(event='navigation', enabled=True)
+    return subprocess.run([sys.executable, 'scripts/bootstrap.py', *arguments], cwd=source).returncode
 
 
 if __name__ == '__main__':

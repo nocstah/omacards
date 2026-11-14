@@ -400,6 +400,28 @@ FocusScope {
                     Label { Layout.fillWidth: true; text: "A newer Hyprflip is paired with this OmaCards."; wrapMode: Text.WordWrap }
                     Action { text: "Update Hyprflip"; onClicked: root.service.installHyprflip() }
                 }
+                // Asked once on an install that predates the movement shortcuts:
+                // either answer is recorded by Hyprflip, and Settings changes it later.
+                ColumnLayout {
+                    objectName: "navigationOffer"
+                    Layout.fillWidth: true
+                    spacing: Style.space(6)
+                    visible: !root.busy && root.snapshotData.available && root.service && root.service.hyprflipState === "ready" && !root.service.failed
+                             && root.page === "cards" && root.question === null && root.caps.navigation === true
+                             && root.snapshotData.navigation === "off" && !root.snapshotData.navigation_choice
+                    Label { Layout.fillWidth: true; text: "Move whole cards with Omarchy’s keys?"; font.bold: true; wrapMode: Text.WordWrap }
+                    Label {
+                        Layout.fillWidth: true
+                        text: "Super+Shift+arrows and Super+Shift+1…0 would move every app in a card together. Windows in no card move as before. You can change this in Settings."
+                        wrapMode: Text.WordWrap
+                        font.pixelSize: Style.font.bodySmall
+                    }
+                    RowLayout {
+                        spacing: Style.space(6)
+                        Action { text: "Turn on"; onClicked: root.service.run("navigation", {enabled: true}) }
+                        Action { text: "No thanks"; tooltipText: "Keep Omarchy’s keys as they are"; onClicked: root.service.run("navigation", {enabled: false}) }
+                    }
+                }
 
                 // Every backend question is displayed here, keeping a single UI flow.
                 ColumnLayout {
@@ -690,7 +712,7 @@ FocusScope {
                         font.pixelSize: Style.font.bodySmall
                     }
 
-                    Ui.PanelSeparator { Layout.fillWidth: true; Layout.topMargin: Style.space(4); visible: accentToggle.visible || nearbyToggle.visible }
+                    Ui.PanelSeparator { Layout.fillWidth: true; Layout.topMargin: Style.space(4); visible: accentToggle.visible || nearbyToggle.visible || navigationToggle.visible }
                     Ui.Toggle {
                         id: accentToggle
                         Layout.fillWidth: true
@@ -725,6 +747,25 @@ FocusScope {
                         Accessible.onPressAction: clicked()
                         Accessible.onToggleAction: clicked()
                         onClicked: root.service.run("nearby", {enabled: !checked})
+                    }
+                    Ui.Toggle {
+                        id: navigationToggle
+                        objectName: "navigationToggle"
+                        Layout.fillWidth: true
+                        visible: root.caps.navigation === true
+                        label: "Move whole cards with Omarchy’s keys"
+                        description: "Super+Shift+arrows and Super+Shift+1…0 move every app in a card together · Windows in no card move as before"
+                            + (root.snapshotData.navigation === "edited" ? " · You changed these shortcuts; turning them off keeps your copy in a backup" : "")
+                        checked: root.snapshotData.navigation === "on" || root.snapshotData.navigation === "edited"
+                        foreground: Commons.Color.popups.text
+                        Accessible.role: Accessible.CheckBox
+                        Accessible.checkable: true
+                        Accessible.checked: checked
+                        Accessible.name: label
+                        Accessible.description: description
+                        Accessible.onPressAction: clicked()
+                        Accessible.onToggleAction: clicked()
+                        onClicked: root.service.run("navigation", {enabled: !checked})
                     }
                     Label {
                         visible: root.caps.drag_to_add === true

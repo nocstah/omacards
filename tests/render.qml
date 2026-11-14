@@ -11,7 +11,7 @@ ShellRoot {
     id: harness
     property int step: 0
     property var original: null
-    property var shots: ["cards", "settings", "preferences-narrow", "preferences-light", "preferences-dark", "preferences-scaled", "shortcuts", "shortcut-record", "shortcut-conflict", "settings-narrow", "settings-scaled", "edit", "motion", "motion-refresh", "question", "empty", "narrow", "scaled", "light", "dark", "pane-edit", "library-ungrouped", "no-front", "unselected-card", "long-front", "scaled-entry", "install-missing", "install-progress", "install-waiting", "outdated", "refused", "multi-face", "multi-face-narrow", "multi-face-scaled", "multi-face-edit", "multi-face-remove", "multi-face-edit-narrow", "multi-face-edit-scaled", "edit-add-face", "settings-dark", "error-dark", "ungroup-confirm",
+    property var shots: ["cards", "settings", "preferences-narrow", "preferences-light", "preferences-dark", "preferences-scaled", "shortcuts", "shortcut-record", "shortcut-conflict", "settings-narrow", "settings-scaled", "edit", "motion", "motion-refresh", "question", "empty", "narrow", "scaled", "light", "dark", "pane-edit", "library-ungrouped", "no-front", "unselected-card", "long-front", "scaled-entry", "install-missing", "install-progress", "install-waiting", "outdated", "navigation-offer", "refused", "multi-face", "multi-face-narrow", "multi-face-scaled", "multi-face-edit", "multi-face-remove", "multi-face-edit-narrow", "multi-face-edit-scaled", "edit-add-face", "settings-dark", "error-dark", "ungroup-confirm",
         // In-flight shots come last, each followed by the moment it finishes.
         "applying", "applied", "working", "worked", "installing", "installed"]
     // The edit page's pane row for an app, enabled or not.
@@ -62,7 +62,7 @@ ShellRoot {
                 [() => content.moveFocus(0, 1), "accessibleName:App spacing, Compact selected"],
                 [() => content.moveFocus(0, -1), "accessibleName:Card appearance, Classic tabs selected"],
                 [() => content.moveTab(-1), "title:Keyboard shortcuts"],
-                [() => { harness.focusOn("accessibleName:Back"); content.moveTab(-1) }, "label:Card keys beside a card"],
+                [() => { harness.focusOn("accessibleName:Back"); content.moveTab(-1) }, "label:Move whole cards with Omarchy’s keys"],
                 [() => content.moveTab(1), "accessibleName:Back"]])
         }
         if (name === "pane-edit") {
@@ -107,9 +107,32 @@ ShellRoot {
             if (service.page !== "settings") console.error("Saving a preference left Settings")
             if (focusName() !== "label:Accent ring") console.error("Saving a preference moved focus to " + focusName())
         }
+        // Offered once: only while the shortcuts are off and no choice is recorded.
+        if (name === "navigation-offer") {
+            const offer = harness.findItem(content, "navigationOffer"), toggle = harness.findItem(content, "navigationToggle")
+            if (!offer || !offer.visible) console.error("The movement-shortcut offer should show on an install without them")
+            const variant = changes => { const d = JSON.parse(JSON.stringify(service.snapshot)); Object.assign(d, changes); service.snapshot = d }
+            const before = service.snapshot
+            for (const [changes, label] of [[{navigation_choice: "off"}, "after No thanks"], [{navigation: "on", navigation_choice: "on"}, "while on"],
+                                            [{navigation: "edited", navigation_choice: null}, "while an edited copy is loaded"]]) {
+                variant(changes)
+                if (offer.visible) console.error("The movement-shortcut offer showed " + label)
+                service.snapshot = before
+            }
+            const older = JSON.parse(JSON.stringify(before)); delete older.capabilities.navigation; service.snapshot = older
+            if (offer.visible || toggle.visible) console.error("A Hyprflip without the movement-shortcut switch showed it")
+            service.snapshot = before
+            if (toggle.checked) console.error("The movement-shortcut toggle should be off")
+            variant({navigation: "edited"})
+            if (!toggle.checked || toggle.description.indexOf("backup") < 0) console.error("An edited copy should show as on and mention the backup")
+            service.snapshot = before
+            if (service.quietActions.indexOf("navigation") < 0) console.error("Switching the movement shortcuts should not close the panel")
+        }
+        if (name === "installed" && service.notice.indexOf("turn this off in Settings") < 0)
+            console.error("A new setup's notice should say the movement shortcuts are on: " + service.notice)
         if (name === "worked" && service.busy) console.error("The fake open did not finish in time")
         if (name === "installed" && service.installing) console.error("The fake install did not finish in time")
-        if (["settings", "pane-edit", "multi-face-edit", "motion-refresh", "ungroup-confirm", "applied", "worked", "installed"].includes(name)) console.log("OMACARDS_CHECKED " + name)
+        if (["settings", "pane-edit", "multi-face-edit", "motion-refresh", "ungroup-confirm", "navigation-offer", "applied", "worked", "installed"].includes(name)) console.log("OMACARDS_CHECKED " + name)
     }
     Cards.Service { id: service }
     FileView {
@@ -231,6 +254,12 @@ ShellRoot {
                         if (service.hyprflipCurrent(data) !== expected) console.error("hyprflipCurrent wrong for " + JSON.stringify(data))
                     if (service.compareReleases("0.3.0-rc.10", "0.3.0-rc.9") !== 1 || service.compareReleases("0.3.0-rc.16", "0.3.0") !== -1)
                         console.error("compareReleases misorders releases")
+                }
+                if (next === "navigation-offer") {
+                    const d = JSON.parse(JSON.stringify(harness.original))
+                    d.navigation = "off"
+                    d.navigation_choice = null
+                    service.snapshot = d
                 }
                 if (next === "refused") {
                     window.width = 340; window.height = 550; Style.spacingScale = 1; Style.fontBaseSize = 12
