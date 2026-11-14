@@ -321,6 +321,13 @@ direct saved-card activation, choosing an app on a hidden face, reordering,
 and Ungroup keeping the apps open. It leaves the session with the saved card
 rebuilt, so it can run again. Rendering uses synthetic fixture data.
 
+`python3 tests/navigation-native.py <session.json> --hyprflip <checkout>`
+checks the movement-shortcut offer and Settings switch in such a session. It
+installs that checkout's guided setup into a home inside the session folder,
+answers the offer and flips the switch through the real panel, and after each
+step checks the compositor's keys and that no card changed. It puts the
+session's configuration back afterwards.
+
 MIT licensed. Built on Hyprflip and Omarchy's native shell components.
 
 ## Floating cards, shortcuts and destinations

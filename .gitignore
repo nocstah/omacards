@@ -3,3 +3,4 @@ __pycache__/
 tests/*-result.log
 .impeccable/review/
 tests/shortcut-native.log
+tests/navigation-native.log
