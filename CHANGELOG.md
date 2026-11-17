@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Pin Hyprflip to [`v0.3.0-rc.24`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.24)
+  (`76cc8af12e6766de7594b066de33cd09a4d2f7cd`). Its guided setup leaves a key
+  that another module claims to that module. Before, such a module, like
+  OmaRelay's card key on Super+Ctrl+Alt+O, stopped **Install Hyprflip** and
+  **Update Hyprflip** at the helper step. Hyprflip 0.3.0-rc.23 or later still
+  counts as current; helper protocol 1 is unchanged.
 - **Settings → Keyboard shortcuts** names the module that sets a key another
   module claims from Hyprflip, such as "Super+Ctrl+Alt+O · Set by OmaRelay",
   instead of "Not editable here". Hyprflip reports the owner from
