@@ -112,7 +112,9 @@ ColumnLayout {
             required property var modelData
             Layout.fillWidth: true
             title: modelData.label
-            detail: modelData.shortcut + (modelData.editable ? "" : " · Not editable here")
+            // A key another module claims (Hyprflip's hyprflip_claimed_keys) is that module's to change.
+            detail: modelData.shortcut + (modelData.owner ? " · Set by " + modelData.owner
+                                          : modelData.editable ? "" : " · Not editable here")
             selected: modelData.id === root.selectedId
             enabled: modelData.editable
             pointerGate: root.pointerGate

@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- **Settings → Keyboard shortcuts** names the module that sets a key another
+  module claims from Hyprflip, such as "Super+Ctrl+Alt+O · Set by OmaRelay",
+  instead of "Not editable here". Hyprflip reports the owner from
+  0.3.0-rc.24 on.
+
 ## 0.2.0-rc.28 — 2026-11-18
 
 - Pin Hyprflip to [`v0.3.0-rc.23`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.23)

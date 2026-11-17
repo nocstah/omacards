@@ -107,6 +107,23 @@ ShellRoot {
             if (service.page !== "settings") console.error("Saving a preference left Settings")
             if (focusName() !== "label:Accent ring") console.error("Saving a preference moved focus to " + focusName())
         }
+        // A key another module claims shows its owner instead of a bare refusal.
+        if (name === "shortcuts") {
+            const before = service.snapshot, owned = JSON.parse(JSON.stringify(before))
+            Object.assign(owned.shortcuts.rows.find(r => r.id === "create"), {owner: "OmaRelay", editable: false, shortcut: "Super+Ctrl+Alt+O"})
+            service.snapshot = owned
+            const details = [], seen = new Set(), walk = item => {
+                if (seen.has(item)) return
+                seen.add(item)
+                if (typeof item.detail === "string" && item.title === "Create, unfold or fold") details.push([item.detail, item.enabled])
+                for (const child of item.children || []) walk(child)
+                if (item.contentItem && item.contentItem !== item) walk(item.contentItem)
+            }
+            walk(content)
+            if (details.length !== 1 || details[0][0] !== "Super+Ctrl+Alt+O · Set by OmaRelay" || details[0][1])
+                console.error("A claimed key should name its owner and not be chosen: " + JSON.stringify(details))
+            service.snapshot = before
+        }
         // Offered once: only while the shortcuts are off and no choice is recorded.
         if (name === "navigation-offer") {
             const offer = harness.findItem(content, "navigationOffer"), toggle = harness.findItem(content, "navigationToggle")
@@ -132,7 +149,7 @@ ShellRoot {
             console.error("A new setup's notice should say the movement shortcuts are on: " + service.notice)
         if (name === "worked" && service.busy) console.error("The fake open did not finish in time")
         if (name === "installed" && service.installing) console.error("The fake install did not finish in time")
-        if (["settings", "pane-edit", "multi-face-edit", "motion-refresh", "ungroup-confirm", "navigation-offer", "applied", "worked", "installed"].includes(name)) console.log("OMACARDS_CHECKED " + name)
+        if (["settings", "shortcuts", "pane-edit", "multi-face-edit", "motion-refresh", "ungroup-confirm", "navigation-offer", "applied", "worked", "installed"].includes(name)) console.log("OMACARDS_CHECKED " + name)
     }
     Cards.Service { id: service }
     FileView {
