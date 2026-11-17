@@ -1,11 +1,13 @@
 # Changelog
 
-## Unreleased
+## 0.2.0-rc.28 — 2026-11-18
 
 - Pin Hyprflip to [`v0.3.0-rc.23`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.23)
   (`561cc77f32b4ad1ff831c2fe47de10307281cfd2`). It brings the movement
-  shortcuts below, lets a program cover a card with a window of its own, and
-  keeps those covers through an update. Helper protocol 1 is unchanged.
+  shortcuts below and cards of up to six faces, which the panel's **Add as new
+  face** follows. Hyprflip's status now says why each app went away. A program
+  can cover a card with a window of its own, and updates keep those covers.
+  Helper protocol 1 is unchanged.
 - OmaCards now needs Hyprflip 0.3.0-rc.23 or later. An older install keeps
   working, and the Cards page offers **Update Hyprflip**; after the update it
   asks once about the movement shortcuts. Updating also brings the installer
