@@ -2,13 +2,18 @@
 
 ## Unreleased
 
+- Pin Hyprflip to [`v0.3.0-rc.23`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.23)
+  (`561cc77f32b4ad1ff831c2fe47de10307281cfd2`). It brings the movement
+  shortcuts below, lets a program cover a card with a window of its own, and
+  keeps those covers through an update. Hyprflip 0.3.0-rc.16 or later still
+  counts as current; helper protocol 1 is unchanged.
 - Hyprflip's movement shortcuts (Super+Shift+arrows and Super+Shift+1…0
   move every app in a card together) are installed on a new setup from the
-  panel, when the pinned Hyprflip has them. **Settings → Move whole cards with
-  Omarchy's keys** turns them off or on again. An install from before them
-  is asked once on the Cards page. Updates never switch them on. Both need a
-  Hyprflip helper that reports `capabilities.navigation`; until then they
-  stay hidden.
+  panel. **Settings → Move whole cards with Omarchy's keys** turns them off or
+  on again. An install from before them is asked once on the Cards page.
+  Updates never switch them on. Both need Hyprflip 0.3.0-rc.23 or later, whose
+  helper reports `capabilities.navigation`; with an older Hyprflip they stay
+  hidden.
 
 ## 0.2.0-rc.27 — 2026-11-13
 

@@ -117,11 +117,11 @@ Updating the panel alone does not update the compositor library.
 ## Requirements
 
 This is the **0.2.0-rc.27 preview**. It needs **Hyprflip 0.3.0-rc.16 or later**
-and was tested with Hyprflip 0.3.0-rc.22.
+and was tested with Hyprflip 0.3.0-rc.23.
 
 - Omarchy 4's stock Quickshell bar; tested with 4.0.4.
 - Hyprflip 0.3.0-rc.16 or later; the panel installs the tested commit
-  **`910371b0c97fea19cfa9abb0357ab4a76a6030a4`**,
+  **`561cc77f32b4ad1ff831c2fe47de10307281cfd2`**,
   including its JSON helper (protocol 1), Python 3 and GLib.
 - Omarchy’s default dwindle layout. Cards are built by the Hyprflip core alone,
   tiled or floating.
@@ -134,15 +134,15 @@ below into `~/.local/share/omacards/hyprflip`, verifies it, and runs Hyprflip's
 `scripts/bootstrap.py`, which checks the prerequisites, builds, self-tests and
 installs the core and helper. Each step appears in the panel.
 
-A new setup also installs Hyprflip's movement shortcuts, when the pinned
-Hyprflip has them: **Super+Shift+arrows** and **Super+Shift+1…0**
+A new setup also installs Hyprflip's movement shortcuts (Hyprflip 0.3.0-rc.23
+or later): **Super+Shift+arrows** and **Super+Shift+1…0**
 (**Super+Shift+Alt+1…0** without following) then move every app in a card
 together, and windows in no card move as Omarchy's keys move them. They take
 over Omarchy's bindings for those keys, including any of your own. Turn them
 off in **Settings → Move whole cards with Omarchy's keys**; turning them off
 removes them from your Hyprland configuration and keeps a copy you edited in a
-backup. An install from before them asks once on the Cards page. Updates never
-switch them on, so your choice stays.
+backup. An install from before them asks once on the Cards page, from Hyprflip
+0.3.0-rc.23 on. Updates never switch them on, so your choice stays.
 
 A stock Omarchy system lacks two build tools, CMake and Ninja. When the
 bootstrap reports missing build packages, the panel offers **Install build
@@ -161,7 +161,7 @@ when that commit is the one below. The manual steps below remain available.
 ### Install the pinned Hyprflip dependency by hand
 
 This OmaCards revision was tested with Hyprflip commit
-[`910371b0c97fea19cfa9abb0357ab4a76a6030a4`](https://github.com/nocstah/hyprflip/tree/910371b0c97fea19cfa9abb0357ab4a76a6030a4).
+[`561cc77f32b4ad1ff831c2fe47de10307281cfd2`](https://github.com/nocstah/hyprflip/tree/561cc77f32b4ad1ff831c2fe47de10307281cfd2).
 Use this exact revision for both the compositor components and the helper that
 OmaCards executes.
 
@@ -169,14 +169,14 @@ Create a separate checkout and verify its revision:
 
 ```sh
 git clone --no-checkout https://github.com/nocstah/hyprflip.git hyprflip-omacards &&
-git -C hyprflip-omacards checkout --detach 910371b0c97fea19cfa9abb0357ab4a76a6030a4 &&
-test "$(git -C hyprflip-omacards rev-parse HEAD)" = 910371b0c97fea19cfa9abb0357ab4a76a6030a4
+git -C hyprflip-omacards checkout --detach 561cc77f32b4ad1ff831c2fe47de10307281cfd2 &&
+test "$(git -C hyprflip-omacards rev-parse HEAD)" = 561cc77f32b4ad1ff831c2fe47de10307281cfd2
 ```
 
 For a first installation on **dwindle**, run the block below from the directory
 containing `hyprflip-omacards`. It verifies the revision, builds and installs the
 core, then installs the shared helper. Dependencies and alternative installation
-methods are in [the installation guide at that same commit](https://github.com/nocstah/hyprflip/blob/910371b0c97fea19cfa9abb0357ab4a76a6030a4/docs/INSTALL.md).
+methods are in [the installation guide at that same commit](https://github.com/nocstah/hyprflip/blob/561cc77f32b4ad1ff831c2fe47de10307281cfd2/docs/INSTALL.md).
 
 Open cards stay open through an update. Cards left from the retired hy3
 provider need ungrouping first; the guide explains how.
@@ -186,7 +186,7 @@ Installing the OmaCards panel itself does not replace compositor libraries.
 (
   set -eu
   cd hyprflip-omacards
-  test "$(git rev-parse HEAD)" = 910371b0c97fea19cfa9abb0357ab4a76a6030a4
+  test "$(git rev-parse HEAD)" = 561cc77f32b4ad1ff831c2fe47de10307281cfd2
   test -z "$(git status --porcelain --untracked-files=all)"
   make test
   python3 scripts/install.py --dry-run
@@ -295,7 +295,7 @@ compositor restart is needed for this QML interface.
 
 ## Development and checks
 
-See [the protocol](https://github.com/nocstah/hyprflip/blob/910371b0c97fea19cfa9abb0357ab4a76a6030a4/docs/PANEL_API.md).
+See [the protocol](https://github.com/nocstah/hyprflip/blob/561cc77f32b4ad1ff831c2fe47de10307281cfd2/docs/PANEL_API.md).
 The workflow backend belongs to Hyprflip; do not copy it into this project.
 
 For local development, clone this repository and pass its absolute path to
