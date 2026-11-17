@@ -18,7 +18,7 @@ Scope {
     // The oldest Hyprflip release this panel works with. An install recording
     // this release or a later one is current, so Hyprflip-only releases need no
     // OmaCards change. Raise it only when the panel needs newer backend behavior.
-    readonly property string hyprflipMinimum: "0.3.0-rc.16"
+    readonly property string hyprflipMinimum: "0.3.0-rc.23"
     readonly property string hyprflipSource: Quickshell.env("HOME") + "/.local/share/omacards/hyprflip"
     readonly property string installer: Quickshell.env("OMACARDS_INSTALLER") || Qt.resolvedUrl("install_hyprflip.py").toString().replace(/^file:\/\//, "")
     // ready, missing (no helper answered), outdated (old protocol, or a

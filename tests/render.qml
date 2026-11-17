@@ -241,7 +241,7 @@ ShellRoot {
                     const pin = service.hyprflipPin, other = "a".repeat(40)
                     const cases = [
                         [{installed_release: service.hyprflipMinimum, installed_commit: other}, true],
-                        [{installed_release: "0.3.0-rc.16", installed_commit: other}, true],
+                        [{installed_release: "0.3.0-rc.22", installed_commit: other}, false],
                         [{installed_release: "0.3.0"}, true],
                         [{installed_release: "0.4.0-rc.1"}, true],
                         [{installed_release: "0.3.0-rc.9", installed_commit: pin}, false],

@@ -116,11 +116,11 @@ Updating the panel alone does not update the compositor library.
 
 ## Requirements
 
-This is the **0.2.0-rc.27 preview**. It needs **Hyprflip 0.3.0-rc.16 or later**
+This is the **0.2.0-rc.27 preview**. It needs **Hyprflip 0.3.0-rc.23 or later**
 and was tested with Hyprflip 0.3.0-rc.23.
 
 - Omarchy 4's stock Quickshell bar; tested with 4.0.4.
-- Hyprflip 0.3.0-rc.16 or later; the panel installs the tested commit
+- Hyprflip 0.3.0-rc.23 or later; the panel installs the tested commit
   **`561cc77f32b4ad1ff831c2fe47de10307281cfd2`**,
   including its JSON helper (protocol 1), Python 3 and GLib.
 - Omarchy’s default dwindle layout. Cards are built by the Hyprflip core alone,
@@ -154,7 +154,7 @@ passed. While the panel is
 open, it checks with `pacman -Q`, then installs Hyprflip as soon as they are
 in. OmaCards itself never runs sudo. Open dwindle and floating cards stay open through updates.
 The panel offers an update only when the release an install recorded is older
-than 0.3.0-rc.16, so a newer Hyprflip is never replaced by the tested one.
+than 0.3.0-rc.23, so a newer Hyprflip is never replaced by the tested one.
 Installs from Hyprflip releases that record only a commit count as current
 when that commit is the one below. The manual steps below remain available.
 

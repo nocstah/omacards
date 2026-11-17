@@ -5,8 +5,11 @@
 - Pin Hyprflip to [`v0.3.0-rc.23`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.23)
   (`561cc77f32b4ad1ff831c2fe47de10307281cfd2`). It brings the movement
   shortcuts below, lets a program cover a card with a window of its own, and
-  keeps those covers through an update. Hyprflip 0.3.0-rc.16 or later still
-  counts as current; helper protocol 1 is unchanged.
+  keeps those covers through an update. Helper protocol 1 is unchanged.
+- OmaCards now needs Hyprflip 0.3.0-rc.23 or later. An older install keeps
+  working, and the Cards page offers **Update Hyprflip**; after the update it
+  asks once about the movement shortcuts. Updating also brings the installer
+  that keeps covers.
 - Hyprflip's movement shortcuts (Super+Shift+arrows and Super+Shift+1…0
   move every app in a card together) are installed on a new setup from the
   panel. **Settings → Move whole cards with Omarchy's keys** turns them off or
