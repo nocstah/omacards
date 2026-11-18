@@ -114,17 +114,28 @@ ShellRoot {
         // A card behind a cover (Herdr) with one face of its own: the cover
         // shows, so no face is marked Showing, and there is no other side.
         if (name === "one-face-covered") {
+            const boldFront = () => harness.visibleItems(content, i => i.text === "Front" && i.font !== undefined && i.font.bold)
             if (harness.showingLabels().length) console.error("A covered card marked a face as Showing")
+            if (boldFront().length) console.error("A covered card's own face name should not be bold")
             const d = JSON.parse(JSON.stringify(service.snapshot))
             d.cards[0].covered = false
             service.snapshot = d
             if (harness.showingLabels().length !== 1) console.error("An uncovered one-face card should mark its face as Showing")
+            if (boldFront().length !== 1) console.error("An uncovered one-face card's face name should be bold")
         }
         if (name === "one-face-edit") {
+            // The Action, not the label inside it, which carries the same text.
+            const showAction = face => harness.visibleItems(content, i => i.accessibleName !== undefined && i.text === (content.canShowFace ? "Show " : "Show and edit ") + face)
             if (harness.showingLabels().length) console.error("The edit page marked a covered card's face as Showing")
             const other = harness.visibleItems(content, i => i.accessibleName === "Move Telegram to Front")
             if (other.length !== 1 || other[0].enabled || other[0].tooltipText !== "This card has one face of its own")
                 console.error("Other side should be offered disabled on a card with one face of its own")
+            // The cover shows, so the card's own face is offered to show.
+            if (showAction("Front").length !== 1) console.error("A covered card should offer to show its own face")
+            const uncovered = JSON.parse(JSON.stringify(service.snapshot))
+            uncovered.cards[0].covered = false
+            service.snapshot = uncovered
+            if (showAction("Front").length) console.error("An uncovered card should not offer to show the face it shows")
             // The same face with a second face beside it can move the app again.
             const two = JSON.parse(JSON.stringify(harness.original))
             two.cards[0].active = 1; two.cards[0].current = "0xb"

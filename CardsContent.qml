@@ -508,7 +508,7 @@ FocusScope {
                                 required property var modelData
                                 Layout.fillWidth: true
                                 spacing: Style.space(6)
-                                Label { text: root.faceName(modelData.index); Layout.preferredWidth: Style.space(48); font.bold: root.card && root.card.active === modelData.index }
+                                Label { text: root.faceName(modelData.index); Layout.preferredWidth: Style.space(48); font.bold: !!root.card && root.card.active === modelData.index && !root.card.covered }
                                 Label { text: modelData.panes.map(p => p.label).join(" · "); Layout.fillWidth: true }
                                 Label { text: "Showing"; visible: root.faceShown(modelData.index); color: Commons.Color.accent; font.pixelSize: Style.font.bodySmall }
                             }
@@ -797,6 +797,9 @@ FocusScope {
                         ColumnLayout {
                             id: face
                             required property var modelData
+                            // The face edits apply to. A covered card's active face counts: Hyprflip turns to
+                            // it before an edit. The cues that tell what is on screen (border, Showing, Show)
+                            // read root.faceShown, which is false for every own face while the cover shows.
                             readonly property bool showing: root.card && (root.card.active === modelData.index || root.card.unfolded)
                             readonly property bool full: modelData.panes.length >= root.caps.max_panes
                             Layout.fillWidth: true
@@ -822,7 +825,7 @@ FocusScope {
                                             width: stacked ? parent.width : (parent.width - Style.space(2) * (count - 1)) / count
                                             height: stacked ? (parent.height - Style.space(2) * (count - 1)) / count : parent.height
                                             color: "transparent"
-                                            border.color: face.showing ? Commons.Color.accent : Commons.Color.popups.text
+                                            border.color: root.faceShown(face.modelData.index) ? Commons.Color.accent : Commons.Color.popups.text
                                             border.width: 1
                                             radius: Math.min(Style.cornerRadius, Style.space(2))
                                         }
@@ -944,7 +947,8 @@ FocusScope {
                             }
                             Action {
                                 text: (root.canShowFace ? "Show " : "Show and edit ") + root.faceName(face.modelData.index)
-                                visible: !face.showing
+                                // A covered card offers its active face too: both paths turn it from the cover.
+                                visible: !root.faceShown(face.modelData.index)
                                 onClicked: root.canShowFace ? root.service.cardAction("face", {face: face.modelData.index}, true)
                                     : root.edit("", face.modelData.index, null)
                             }
