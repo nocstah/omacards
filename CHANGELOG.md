@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.0-rc.35 — 2026-11-18
 
 - Pin Hyprflip to [`v0.3.0-rc.29`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.29)
   (`26b39ab592173627fc093fa4abc51c1aae547a8d`). Hyprflip 0.3.0-rc.29 keeps the
