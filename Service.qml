@@ -14,7 +14,7 @@ Scope {
     readonly property string backend: Quickshell.env("OMACARDS_BACKEND") || (Quickshell.env("HOME") + "/.local/lib/hyprflip/control.py")
     // The Hyprflip commit Install and Update fetch: the one this OmaCards
     // version is built and tested against. Keep it equal to the pin in README.md.
-    readonly property string hyprflipPin: "dea39c9cb8a8717d02a48f85b6d596e84ef3292b"
+    readonly property string hyprflipPin: "26b39ab592173627fc093fa4abc51c1aae547a8d"
     // The oldest Hyprflip release this panel works with. An install recording
     // this release or a later one is current, so Hyprflip-only releases need no
     // OmaCards change. Raise it only when the panel needs newer backend behavior.

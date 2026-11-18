@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Pin Hyprflip to [`v0.3.0-rc.29`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.29)
+  (`26b39ab592173627fc093fa4abc51c1aae547a8d`). Hyprflip 0.3.0-rc.29 keeps the
+  keyboard in a fullscreen or maximized card that releases an app, and shows
+  each face at its focused look in the switcher. Hyprflip 0.3.0-rc.23 or later
+  still counts as current.
+
 ## 0.2.0-rc.34 — 2026-11-18
 
 - Pin Hyprflip to [`v0.3.0-rc.28`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.28)
