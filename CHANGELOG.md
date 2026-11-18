@@ -10,6 +10,10 @@
   switch the card while it is fullscreen. Another program's card says only who
   manages it, and that it may build an ungrouped card again. Needs a Hyprflip
   that marks cards (0.3.0-rc.27); with an older one nothing changes.
+- `tools/release.py` pins a Hyprflip release (`pin <tag>`) and releases
+  OmaCards (`release <version>`), each in one command that edits every place
+  the version appears, runs the checks and commits, or changes nothing.
+
 ## 0.2.0-rc.31 — 2026-11-18
 
 - Pin Hyprflip to [`v0.3.0-rc.26`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.26)

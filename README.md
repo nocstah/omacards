@@ -311,6 +311,8 @@ checkout with `manifest.json` at the root. Run development checks from that chec
 ```sh
 omarchy plugin validate .
 python3 tests/installer_test.py
+python3 tests/pin_check.py
+python3 tests/release_tool_test.py
 python3 tests/render.py
 python3 tests/run-native.py /tmp/oc-demo/session.json \
   --backend /path/to/hyprflip/scripts/control.py --dwindle
@@ -333,6 +335,22 @@ installs that checkout's guided setup into a home inside the session folder,
 answers the offer and flips the switch through the real panel, and after each
 step checks the compositor's keys and that no card changed. It puts the
 session's configuration back afterwards.
+
+### Pins and releases
+
+`python3 tools/release.py pin v0.3.0-rc.27 --note "What it brings."` moves
+every place that names the tested Hyprflip to that tag: the commit in
+`Service.qml` and this README, the release it was tested with, the installer
+fixtures, and a changelog entry under Unreleased. It looks the tag's commit up
+on GitHub, or takes `--commit`. `--minimum <release>` also raises the oldest
+Hyprflip the panel accepts. It runs `tests/pin_check.py` and
+`tests/installer_test.py`, then commits.
+
+`python3 tools/release.py release 0.2.0-rc.32` turns Unreleased into the
+version's heading, names the version here and in `manifest.json`, checks the
+pin and `omarchy plugin validate .`, then commits. Both refuse while tracked
+files have changes, put every file back when a check fails, and push nothing.
+`--dry-run` shows the changes.
 
 MIT licensed. Built on Hyprflip and Omarchy's native shell components.
 
