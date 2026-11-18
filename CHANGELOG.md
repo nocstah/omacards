@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.0-rc.31 — 2026-11-18
 
 - Pin Hyprflip to [`v0.3.0-rc.26`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.26)
   (`99dd5994c67c185114c929ba9654a5fb394b26a7`). An update now keeps cards
