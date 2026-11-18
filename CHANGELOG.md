@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Pin Hyprflip to [`v0.3.0-rc.28`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.28)
+  (`dea39c9cb8a8717d02a48f85b6d596e84ef3292b`). Hyprflip 0.3.0-rc.28 keeps a
+  turn going while a held key repeats (the MacBook's Fn+F8), and refuses to
+  unfold a card with one face of its own. Hyprflip 0.3.0-rc.23 or later still
+  counts as current.
+
 ## 0.2.0-rc.33 — 2026-11-18
 
 - **Unfold** is offered disabled on a card left with one face of its own under
