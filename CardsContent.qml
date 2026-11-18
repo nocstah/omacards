@@ -129,6 +129,8 @@ FocusScope {
     }
     function nextFace(index) { return card ? (index + 1) % card.faces.length : 0 }
     readonly property bool manyFaces: !!card && card.faces.length > 2
+    // A covered card shows the window over it (Herdr, say), not its own face.
+    function faceShown(index) { return !!card && (card.unfolded || (card.active === index && !card.covered)) }
     readonly property bool canShowFace: !!caps.show_face
     function groupName(header, options, value) {
         const option = options.find(o => String(o.value) === String(value))
@@ -508,7 +510,7 @@ FocusScope {
                                 spacing: Style.space(6)
                                 Label { text: root.faceName(modelData.index); Layout.preferredWidth: Style.space(48); font.bold: root.card && root.card.active === modelData.index }
                                 Label { text: modelData.panes.map(p => p.label).join(" · "); Layout.fillWidth: true }
-                                Label { text: "Showing"; visible: root.card && (root.card.active === modelData.index || root.card.unfolded); color: Commons.Color.accent; font.pixelSize: Style.font.bodySmall }
+                                Label { text: "Showing"; visible: root.faceShown(modelData.index); color: Commons.Color.accent; font.pixelSize: Style.font.bodySmall }
                             }
                         }
                         Flow {
@@ -827,7 +829,7 @@ FocusScope {
                                     }
                                 }
                                 Label { text: face.modelData.panes.length + " / " + (root.caps.max_panes || 3) + " apps" }
-                                Label { text: "Showing"; visible: face.showing; color: Commons.Color.accent }
+                                Label { text: "Showing"; visible: root.faceShown(face.modelData.index); color: Commons.Color.accent }
                             }
                             Repeater {
                                 model: face.modelData.panes
@@ -873,8 +875,10 @@ FocusScope {
                                         Action {
                                             text: root.manyFaces ? "Move to " + root.faceName(paneBlock.otherFace) : "Other side"
                                             accessibleName: "Move " + paneBlock.appName + " to " + root.faceName(paneBlock.otherFace)
-                                            enabled: face.modelData.panes.length > 1 && !paneBlock.otherFull
-                                            tooltipText: face.modelData.panes.length <= 1 ? "The only app on " + root.faceName(face.modelData.index) + " stays"
+                                            // A card left with one face of its own (under a cover) has no other side.
+                                            enabled: !!root.card && root.card.faces.length > 1 && face.modelData.panes.length > 1 && !paneBlock.otherFull
+                                            tooltipText: !!root.card && root.card.faces.length < 2 ? "This card has one face of its own"
+                                                : face.modelData.panes.length <= 1 ? "The only app on " + root.faceName(face.modelData.index) + " stays"
                                                 : paneBlock.otherFull ? root.faceName(paneBlock.otherFace) + " is full" : ""
                                             onClicked: root.edit("other_side", face.modelData.index, root.paneAddress)
                                         }

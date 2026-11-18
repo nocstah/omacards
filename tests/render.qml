@@ -11,7 +11,7 @@ ShellRoot {
     id: harness
     property int step: 0
     property var original: null
-    property var shots: ["cards", "settings", "preferences-narrow", "preferences-light", "preferences-dark", "preferences-scaled", "shortcuts", "shortcut-record", "shortcut-conflict", "settings-narrow", "settings-scaled", "edit", "motion", "motion-refresh", "question", "empty", "narrow", "scaled", "light", "dark", "pane-edit", "library-ungrouped", "no-front", "unselected-card", "long-front", "scaled-entry", "install-missing", "install-progress", "install-waiting", "outdated", "navigation-offer", "refused", "multi-face", "multi-face-narrow", "multi-face-scaled", "multi-face-edit", "multi-face-remove", "multi-face-edit-narrow", "multi-face-edit-scaled", "edit-add-face", "settings-dark", "error-dark", "ungroup-confirm",
+    property var shots: ["cards", "settings", "preferences-narrow", "preferences-light", "preferences-dark", "preferences-scaled", "shortcuts", "shortcut-record", "shortcut-conflict", "settings-narrow", "settings-scaled", "edit", "motion", "motion-refresh", "question", "empty", "narrow", "scaled", "light", "dark", "pane-edit", "library-ungrouped", "no-front", "unselected-card", "long-front", "scaled-entry", "install-missing", "install-progress", "install-waiting", "outdated", "navigation-offer", "refused", "multi-face", "multi-face-narrow", "multi-face-scaled", "multi-face-edit", "multi-face-remove", "multi-face-edit-narrow", "multi-face-edit-scaled", "edit-add-face", "one-face-covered", "one-face-edit", "settings-dark", "error-dark", "ungroup-confirm",
         // In-flight shots come last, each followed by the moment it finishes.
         "applying", "applied", "working", "worked", "installing", "installed"]
     // The edit page's pane row for an app, enabled or not.
@@ -21,6 +21,17 @@ ShellRoot {
         if (item.contentItem && item.contentItem !== item) return paneRow(item.contentItem, title)
         return null
     }
+    // Every item that is on screen and passes the test.
+    function visibleItems(item, test, found, seen) {
+        found = found || []; seen = seen || new Set()
+        if (seen.has(item)) return found
+        seen.add(item)
+        if (item.visible && test(item)) found.push(item)
+        for (const child of item.children || []) visibleItems(child, test, found, seen)
+        if (item.contentItem && item.contentItem !== item) visibleItems(item.contentItem, test, found, seen)
+        return found
+    }
+    function showingLabels() { return harness.visibleItems(content, i => i.text === "Showing" && i.font !== undefined) }
     function findItem(item, name) {
         if (item.objectName === name) return item
         for (const child of item.children || []) { const found = findItem(child, name); if (found) return found }
@@ -100,6 +111,27 @@ ShellRoot {
                 console.error("With the face action, Face 3's app should be selectable and say it shows Face 3")
             if (content.actionTitle({action: "face", face: 2}) !== "Showing Face 3…") console.error("The face action's progress title")
         }
+        // A card behind a cover (Herdr) with one face of its own: the cover
+        // shows, so no face is marked Showing, and there is no other side.
+        if (name === "one-face-covered") {
+            if (harness.showingLabels().length) console.error("A covered card marked a face as Showing")
+            const d = JSON.parse(JSON.stringify(service.snapshot))
+            d.cards[0].covered = false
+            service.snapshot = d
+            if (harness.showingLabels().length !== 1) console.error("An uncovered one-face card should mark its face as Showing")
+        }
+        if (name === "one-face-edit") {
+            if (harness.showingLabels().length) console.error("The edit page marked a covered card's face as Showing")
+            const other = harness.visibleItems(content, i => i.accessibleName === "Move Telegram to Front")
+            if (other.length !== 1 || other[0].enabled || other[0].tooltipText !== "This card has one face of its own")
+                console.error("Other side should be offered disabled on a card with one face of its own")
+            // The same face with a second face beside it can move the app again.
+            const two = JSON.parse(JSON.stringify(harness.original))
+            two.cards[0].active = 1; two.cards[0].current = "0xb"
+            service.snapshot = two
+            const back = harness.visibleItems(content, i => i.accessibleName === "Move Telegram to Front")
+            if (back.length !== 1 || !back[0].enabled) console.error("Other side should be enabled on a two-face card")
+        }
         // A refresh that rebuilds the rows puts focus back on the same row.
         if (name === "motion-refresh" && focusName() !== "title:Slide") console.error("A refresh lost focus: " + focusName())
         // A saved preference keeps the page and the control in focus.
@@ -149,7 +181,7 @@ ShellRoot {
             console.error("A new setup's notice should say the movement shortcuts are on: " + service.notice)
         if (name === "worked" && service.busy) console.error("The fake open did not finish in time")
         if (name === "installed" && service.installing) console.error("The fake install did not finish in time")
-        if (["settings", "shortcuts", "pane-edit", "multi-face-edit", "motion-refresh", "ungroup-confirm", "navigation-offer", "applied", "worked", "installed"].includes(name)) console.log("OMACARDS_CHECKED " + name)
+        if (["settings", "shortcuts", "pane-edit", "multi-face-edit", "one-face-covered", "one-face-edit", "motion-refresh", "ungroup-confirm", "navigation-offer", "applied", "worked", "installed"].includes(name)) console.log("OMACARDS_CHECKED " + name)
     }
     Cards.Service { id: service }
     FileView {
@@ -328,6 +360,18 @@ ShellRoot {
                     Commons.Color.background = "#faf8f3"; Commons.Color.foreground = "#242424"; Commons.Color.accent = "#2255aa"; Commons.Color.muted = "#666666"
                     if (next === "multi-face-edit" || next === "multi-face-edit-narrow" || next === "multi-face-edit-scaled") { content.paneCardKey = card.key; content.paneAddress = "0xe" }
                     if (next === "multi-face-remove") { content.paneCardKey = card.key; content.paneAddress = "0x10" }
+                }
+                // Herdr covers a card left with one face of its own (WhatsApp + Telegram).
+                if (next.startsWith("one-face-")) {
+                    const d = JSON.parse(JSON.stringify(harness.original))
+                    const card = d.cards[0]
+                    card.faces = [Object.assign(card.faces[1], {index: 0})]
+                    card.active = 0; card.current = "0xb"; card.covered = true
+                    card.name = "WhatsApp + Telegram"; card.saved_names = []
+                    service.page = next === "one-face-edit" ? "edit" : "cards"
+                    service.snapshot = d
+                    service.selectedKey = card.key
+                    if (next === "one-face-edit") { content.paneCardKey = card.key; content.paneAddress = "0xc"; window.height = 780 }
                 }
                 if (next === "error-dark") {
                     service.failed = true
