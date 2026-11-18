@@ -11,7 +11,7 @@ ShellRoot {
     id: harness
     property int step: 0
     property var original: null
-    property var shots: ["cards", "settings", "preferences-narrow", "preferences-light", "preferences-dark", "preferences-scaled", "shortcuts", "shortcut-record", "shortcut-conflict", "settings-narrow", "settings-scaled", "edit", "motion", "motion-refresh", "question", "empty", "narrow", "scaled", "light", "dark", "pane-edit", "library-ungrouped", "no-front", "unselected-card", "long-front", "scaled-entry", "install-missing", "install-progress", "install-waiting", "outdated", "navigation-offer", "refused", "multi-face", "multi-face-narrow", "multi-face-scaled", "multi-face-edit", "multi-face-remove", "multi-face-edit-narrow", "multi-face-edit-scaled", "edit-add-face", "one-face-covered", "one-face-edit", "settings-dark", "error-dark", "ungroup-confirm",
+    property var shots: ["cards", "settings", "preferences-narrow", "preferences-light", "preferences-dark", "preferences-scaled", "shortcuts", "shortcut-record", "shortcut-conflict", "settings-narrow", "settings-scaled", "edit", "motion", "motion-refresh", "question", "empty", "narrow", "scaled", "light", "dark", "pane-edit", "library-ungrouped", "no-front", "unselected-card", "long-front", "scaled-entry", "install-missing", "install-progress", "install-waiting", "outdated", "navigation-offer", "refused", "multi-face", "multi-face-narrow", "multi-face-scaled", "multi-face-edit", "multi-face-remove", "multi-face-edit-narrow", "multi-face-edit-scaled", "edit-add-face", "one-face-covered", "one-face-edit", "settings-drift", "settings-dark", "error-dark", "ungroup-confirm",
         // In-flight shots come last, each followed by the moment it finishes.
         "applying", "applied", "working", "worked", "installing", "installed"]
     // The edit page's pane row for an app, enabled or not.
@@ -75,6 +75,19 @@ ShellRoot {
                 [() => content.moveTab(-1), "title:Keyboard shortcuts"],
                 [() => { harness.focusOn("accessibleName:Back"); content.moveTab(-1) }, "label:Move whole cards with Omarchy’s keys"],
                 [() => content.moveTab(1), "accessibleName:Back"]])
+            // Said only when what runs is not what was installed, naming what differs.
+            const drift = harness.findItem(content, "installDrift"), detail = harness.findItem(content, "installDriftDetail")
+            const before = service.snapshot
+            const checked = (value, label) => { const d = JSON.parse(JSON.stringify(before)); d.install_check = value; service.snapshot = d; return drift.visible }
+            if (drift.visible) console.error("Without a record of the install, Settings should say nothing of it")
+            if (checked({loaded: "same", changed: []})) console.error("An install as recorded should say nothing")
+            if (checked({loaded: "unknown", changed: []})) console.error("A core that does not say should say nothing")
+            if (!checked({loaded: "same", changed: ["control.py"]}) || detail.text !== "Changed: control.py")
+                console.error("A helper copied over should be named: " + detail.text)
+            if (!checked({loaded: "differs", changed: ["hyprflip.so"]}) ||
+                detail.text !== "The running core is not the installed one · Changed: hyprflip.so")
+                console.error("Another core loaded should be said: " + detail.text)
+            service.snapshot = before
         }
         if (name === "pane-edit") {
             expectKeys(name, [
@@ -110,6 +123,14 @@ ShellRoot {
             if (!hidden() || !hidden().enabled || hidden().detail.indexOf("Select to show Face 3") < 0)
                 console.error("With the face action, Face 3's app should be selectable and say it shows Face 3")
             if (content.actionTitle({action: "face", face: 2}) !== "Showing Face 3…") console.error("The face action's progress title")
+            // A cover takes a face, shown or not: three faces and a cover fill a card of four.
+            const addFace = harness.findItem(content, "addFace")
+            if (!addFace || !addFace.visible) console.error("Three faces of four should offer Add as new face")
+            const covered = JSON.parse(JSON.stringify(service.snapshot))
+            for (const c of covered.cards) c.has_cover = true
+            service.snapshot = covered
+            if (addFace.visible) console.error("Three faces and a cover should not offer Add as new face")
+            service.snapshot = d
         }
         // A card behind a cover (Herdr) with one face of its own: the cover
         // shows, so no face is marked Showing, and there is no other side.
@@ -238,10 +259,13 @@ ShellRoot {
                 // An "after" shot captures the operation started before it.
                 if (["applied", "worked", "installed"].includes(next)) return
                 service.question = null
-                service.page = ["settings","shortcuts","edit","motion"].indexOf(next) >= 0 ? next : ["settings-dark", "applying"].includes(next) ? "settings" : next === "ungroup-confirm" ? "edit" : next === "motion-refresh" ? "motion" : "cards"
+                service.page = ["settings","shortcuts","edit","motion"].indexOf(next) >= 0 ? next : ["settings-dark", "settings-drift", "applying"].includes(next) ? "settings" : next === "ungroup-confirm" ? "edit" : next === "motion-refresh" ? "motion" : "cards"
                 service.snapshot = JSON.parse(JSON.stringify(harness.original))
                 service.context = service.snapshot.context
                 service.selectedKey = "container:1"
+                // Hyprflip as installed no longer runs: another core loaded, and a helper copied over.
+                if (next === "settings-drift") service.snapshot = Object.assign(JSON.parse(JSON.stringify(harness.original)),
+                    {install_check: {loaded: "differs", changed: ["control.py", "hyprflip.so"]}})
                 if (next.startsWith("preferences-")) {
                     service.page = "settings"
                     window.width = next === "preferences-narrow" ? 340 : next === "preferences-scaled" ? 936 : 468

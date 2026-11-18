@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+- **Settings** says when Hyprflip no longer runs as installed: a core loaded
+  from another build, or a helper file copied over by hand. It names what
+  differs and offers **Reinstall Hyprflip**, which puts back the release
+  OmaCards is paired with. It needs Hyprflip 0.3.0-rc.26 or later and says
+  nothing with an older one.
+- **Edit card** no longer offers **Add as new face…** on a covered card that
+  is full: the cover takes one of the card's faces also while the card shows a
+  face of its own (Hyprflip 0.3.0-rc.26's `has_cover`). Before, the action was
+  offered and then refused.
+
 ## 0.2.0-rc.30 — 2026-11-18
 
 - Pin Hyprflip to [`v0.3.0-rc.25`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.25)

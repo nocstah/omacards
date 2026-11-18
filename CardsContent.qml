@@ -627,6 +627,36 @@ FocusScope {
                     visible: root.pageVisible && root.page === "settings"
                     Layout.fillWidth: true
                     spacing: Style.space(8)
+                    // Hyprflip 0.3.0-rc.26 and later say whether what runs is what its install put in place: a core
+                    // loaded from another build, or a helper copied over by hand. Reinstalling puts back the paired release.
+                    ColumnLayout {
+                        id: installDrift
+                        objectName: "installDrift"
+                        readonly property var check: root.snapshotData.install_check || null
+                        readonly property var changed: check && check.changed ? check.changed : []
+                        readonly property bool otherCore: !!check && check.loaded === "differs"
+                        visible: !!check && (otherCore || changed.length > 0)
+                        Layout.fillWidth: true
+                        spacing: Style.space(4)
+                        Label { text: "Hyprflip changed since it was installed"; font.bold: true; Layout.fillWidth: true; wrapMode: Text.WordWrap }
+                        Label {
+                            objectName: "installDriftDetail"
+                            text: [installDrift.otherCore ? "The running core is not the installed one" : "",
+                                   installDrift.changed.length ? "Changed: " + installDrift.changed.join(", ") : ""].filter(s => s).join(" · ")
+                            color: Commons.Color.muted
+                            font.pixelSize: Style.font.bodySmall
+                            Layout.fillWidth: true
+                            wrapMode: Text.WordWrap
+                        }
+                        Action {
+                            objectName: "reinstallHyprflip"
+                            text: "Reinstall Hyprflip"
+                            accessibleName: "Reinstall Hyprflip to put back the release OmaCards is paired with"
+                            enabled: !!root.service && !root.service.refreshing
+                            onClicked: root.service.installHyprflip()
+                        }
+                        Ui.PanelSeparator { Layout.fillWidth: true; Layout.topMargin: Style.space(4) }
+                    }
                     Label { text: "Preferences apply to all cards and are kept after a restart."; Layout.fillWidth: true }
                     ChoiceRow {
                         Layout.fillWidth: true
@@ -964,7 +994,8 @@ FocusScope {
                     Flow {
                         Layout.fillWidth: true
                         spacing: Style.space(6)
-                        Action { text: "Add as new face…"; visible: root.card && root.card.kind === "container" && root.card.faces.length < (root.caps.faces || 2); enabled: !(root.card && root.card.fullscreen); tooltipText: root.card && root.card.fullscreen ? "Leave fullscreen first" : root.card ? "Becomes " + root.faceName(root.card.faces.length) + " · Choose an open app" : ""; onClicked: root.edit("add_face", root.card.active, null) }
+                        // A cover (Herdr, say) takes one of the card's faces, shown or not; Hyprflip 0.3.0-rc.26 says has_cover.
+                        Action { objectName: "addFace"; text: "Add as new face…"; visible: root.card && root.card.kind === "container" && root.card.faces.length + (root.card.has_cover ? 1 : 0) < (root.caps.faces || 2); enabled: !(root.card && root.card.fullscreen); tooltipText: root.card && root.card.fullscreen ? "Leave fullscreen first" : root.card ? "Becomes " + root.faceName(root.card.faces.length) + " · Choose an open app" : ""; onClicked: root.edit("add_face", root.card.active, null) }
                         Action { text: "Save as…"; onClicked: root.edit("save", root.card.active, null) }
                         Action { text: "Manage saved…"; onClicked: root.edit("manage", root.card.active, null) }
                         Action { text: "Reopen missing apps"; visible: !!root.caps.repair && root.card && root.card.saved_names.length > 0; enabled: !(root.card && root.card.fullscreen); tooltipText: root.card && root.card.fullscreen ? "Leave fullscreen first" : ""; onClicked: root.edit("repair", root.card.active, null) }
