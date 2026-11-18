@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- **Unfold** is offered disabled on a card left with one face of its own under
+  a cover, as **Other side** is: "This card has one face of its own".
+  Unfolding it only set the cover beside its face. **Fold** stays for a card
+  that is already unfolded.
+
 ## 0.2.0-rc.32 — 2026-11-18
 
 - Pin Hyprflip to [`v0.3.0-rc.27`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.27)

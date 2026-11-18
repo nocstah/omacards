@@ -167,6 +167,17 @@ ShellRoot {
             service.snapshot = d
             if (harness.showingLabels().length !== 1) console.error("An uncovered one-face card should mark its face as Showing")
             if (boldFront().length !== 1) console.error("An uncovered one-face card's face name should be bold")
+            // Unfolding would only set the cover beside the card's one face; Fold stays for a card already unfolded.
+            const action = text => harness.visibleItems(content, i => i.accessibleName !== undefined && i.text === text)
+            const unfold = action("Unfold")
+            if (unfold.length !== 1 || unfold[0].enabled || unfold[0].tooltipText !== "This card has one face of its own")
+                console.error("Unfold should be offered disabled on a card with one face of its own")
+            const unfolded = JSON.parse(JSON.stringify(service.snapshot))
+            unfolded.cards[0].unfolded = true
+            service.snapshot = unfolded
+            if (action("Fold").length !== 1 || !action("Fold")[0].enabled) console.error("An unfolded card should offer Fold")
+            service.snapshot = harness.original
+            if (action("Unfold").length !== 1 || !action("Unfold")[0].enabled) console.error("A card of two faces should offer Unfold")
         }
         if (name === "one-face-edit") {
             // The Action, not the label inside it, which carries the same text.
@@ -425,7 +436,7 @@ ShellRoot {
                     const d = JSON.parse(JSON.stringify(harness.original))
                     const card = d.cards[0]
                     card.faces = [Object.assign(card.faces[1], {index: 0})]
-                    card.active = 0; card.current = "0xb"; card.covered = true
+                    card.active = 0; card.current = "0xb"; card.covered = true; card.has_cover = true
                     card.name = "WhatsApp + Telegram"; card.saved_names = []
                     service.page = next === "one-face-edit" ? "edit" : "cards"
                     service.snapshot = d

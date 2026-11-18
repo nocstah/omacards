@@ -539,7 +539,14 @@ FocusScope {
                                 tooltipText: !root.card ? "" : root.card.unfolded ? "Fold the card first" : root.card.faces.length > 2 ? "Turn to " + root.faceName(root.nextFace(root.card.active)) : ""
                                 onClicked: root.service.cardAction("flip")
                             }
-                            Action { text: root.card && root.card.unfolded ? "Fold" : "Unfold"; visible: root.card && root.card.kind === "container"; onClicked: root.service.cardAction("unfold") }
+                            // A card left with one face of its own (under a cover) would only set the cover beside it.
+                            Action {
+                                text: root.card && root.card.unfolded ? "Fold" : "Unfold"
+                                visible: root.card && root.card.kind === "container"
+                                enabled: !(root.card && !root.card.unfolded && root.card.faces.length < 2)
+                                tooltipText: root.card && !root.card.unfolded && root.card.faces.length < 2 ? "This card has one face of its own" : ""
+                                onClicked: root.service.cardAction("unfold")
+                            }
                             Action { text: root.card && root.card.floating ? "Tile card" : "Float card"; visible: !!root.caps.floating; enabled: !(root.card && root.card.fullscreen); tooltipText: root.card && root.card.fullscreen ? "Leave fullscreen first" : ""; onClicked: root.service.cardAction("floating") }
                             Action { text: root.card && root.card.fullscreen ? "Leave fullscreen" : "Fullscreen"; visible: !!root.caps.fullscreen && root.card && root.card.native === true; tooltipText: "Fill the screen with the whole card · Apps keep their toolbars" + (root.ownerNote("fullscreen") && !(root.card && root.card.fullscreen) ? " · " + root.ownerNote("fullscreen") : ""); onClicked: root.service.cardAction("fullscreen") }
                             Action { text: "Edit"; visible: root.card && root.card.kind === "container"; onClicked: root.service.page = "edit" }
