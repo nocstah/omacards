@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Pin Hyprflip to [`v0.3.0-rc.26`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.26)
+  (`99dd5994c67c185114c929ba9654a5fb394b26a7`). An update now keeps cards
+  parked out of sight, such as OmaRelay's hidden browser cards, instead of
+  taking them apart, and tells programs that keep their own cards when it
+  starts and ends. Hyprflip 0.3.0-rc.23 or later still counts as current;
+  helper protocol 1 is unchanged.
 - **Settings** says when Hyprflip no longer runs as installed: a core loaded
   from another build, or a helper file copied over by hand. It names what
   differs and offers **Reinstall Hyprflip**, which puts back the release
