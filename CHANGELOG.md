@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.0-rc.33 — 2026-11-18
 
 - **Unfold** is offered disabled on a card left with one face of its own under
   a cover, as **Other side** is: "This card has one face of its own".
