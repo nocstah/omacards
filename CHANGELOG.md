@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.0-rc.30 — 2026-11-18
 
 - Pin Hyprflip to [`v0.3.0-rc.25`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.25)
   (`ff45d6705b350e72a1ff6024c536ff8ab06585bf`). A covered card, such as one
