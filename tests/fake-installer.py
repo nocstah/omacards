@@ -11,7 +11,7 @@ def emit(**event):
     print(json.dumps(event), flush=True)
 
 
-emit(event='step', id='download', title='Download the pinned Hyprflip release', status='ok', detail='Hyprflip v0.3.0-rc.26')
+emit(event='step', id='download', title='Download the pinned Hyprflip release', status='ok', detail='Hyprflip v0.3.0-rc.27')
 # A first install: OmaCards' installer also asks for the movement shortcuts.
 emit(event='navigation', enabled=True)
 emit(event='step', id='check', title='Check prerequisites', status='ok', detail='Hyprland v0.56.2 with matching headers')

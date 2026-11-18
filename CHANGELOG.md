@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Pin Hyprflip to [`v0.3.0-rc.27`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.27)
+  (`a75192ec97757d817d5e17801bda294bf4a741a9`). A program that keeps its own
+  cards, such as OmaRelay, can mark them, and an update keeps the mark; the
+  panel shows it. Hyprflip 0.3.0-rc.23 or later still counts as current.
 - A card another program keeps says so: **Managed by OmaRelay** in the card
   list, the card's details and Edit. Every action still works; the panel says
   beforehand what that program does with it. Ungroup's confirmation says
