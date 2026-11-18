@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+- Pin Hyprflip to [`v0.3.0-rc.25`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.25)
+  (`ff45d6705b350e72a1ff6024c536ff8ab06585bf`). A covered card, such as one
+  behind Herdr's window, can now keep a single face of its own, and an update
+  keeps it under its cover. Hyprflip 0.3.0-rc.23 or later still counts as
+  current; helper protocol 1 is unchanged.
+- **Cards** and **Edit card** on a covered card: the card's own face is no
+  longer marked "Showing" while the cover shows, and **Show** turns the card
+  to it. With one face of its own, **Other side** is disabled and says why.
+
 ## 0.2.0-rc.29 — 2026-11-18
 
 - Pin Hyprflip to [`v0.3.0-rc.24`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.24)
