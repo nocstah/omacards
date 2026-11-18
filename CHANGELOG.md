@@ -6,6 +6,8 @@
   a cover, as **Other side** is: "This card has one face of its own".
   Unfolding it only set the cover beside its face. **Fold** stays for a card
   that is already unfolded.
+- `tools/release.py pin` also runs `tests/render.py` (`--no-render` skips it),
+  and both commands take `--trailer`, such as a co-author, for their commit.
 
 ## 0.2.0-rc.32 — 2026-11-18
 

@@ -1,19 +1,22 @@
 #!/usr/bin/env python3
 """Pin a Hyprflip release, and release OmaCards, each in one command.
 
-  python3 tools/release.py pin v0.3.0-rc.27 [--commit SHA] [--note TEXT] [--minimum 0.3.0-rc.27] [--dry-run]
-  python3 tools/release.py release 0.2.0-rc.32 [--date YYYY-MM-DD] [--dry-run]
+  python3 tools/release.py pin v0.3.0-rc.27 [--commit SHA] [--note TEXT] [--minimum 0.3.0-rc.27] [--no-render]
+                                   [--trailer TEXT]... [--dry-run]
+  python3 tools/release.py release 0.2.0-rc.32 [--date YYYY-MM-DD] [--trailer TEXT]... [--dry-run]
 
 pin moves every place that names the tested Hyprflip to that release: the commit in Service.qml and README.md,
 the release README.md was tested with, the installer fixtures, and a CHANGELOG.md entry under Unreleased (with
 --note's words). It finds the tag's commit on GitHub unless --commit gives it. --minimum also raises the oldest
 Hyprflip the panel accepts, in Service.qml and the README's three sentences that state it. Then it runs
-tests/pin_check.py and tests/installer_test.py and commits "Pin Hyprflip to <version>".
+tests/pin_check.py, tests/installer_test.py and tests/render.py (about half a minute; --no-render skips it) and
+commits "Pin Hyprflip to <version>".
 
 release turns Unreleased into the version's heading, names the version in README.md and manifest.json, checks
 the pin and the plugin (omarchy plugin validate, when it is there), and commits "Release OmaCards <version>".
 
-Both refuse while tracked files have changes, and push nothing. --dry-run prints what would change.
+Both refuse while tracked files have changes, and push nothing. --dry-run prints what would change. --trailer
+adds a trailer to the commit, such as "Co-Authored-By: Name <address>"; repeat it for more.
 """
 import argparse
 import datetime
@@ -125,7 +128,7 @@ def release_edits(version, date):
             'manifest.json': once(manifest, f'"version": "{previous}"', f'"version": "{version}"', 'manifest.json')}
 
 
-def apply(edits, dry_run, checks, message):
+def apply(edits, dry_run, checks, message, trailers=()):
     """Writes the edits, runs the checks and commits; puts every file back when a check fails."""
     old = {path: read(path) for path in edits}
     if dry_run:
@@ -143,7 +146,7 @@ def apply(edits, dry_run, checks, message):
             (ROOT / path).write_text(text)
         raise Refused(f'a check failed, and every file is as it was: {error}') from None
     run('git', 'add', '--', *edits)
-    run('git', 'commit', '--quiet', '-m', message)
+    run('git', 'commit', '--quiet', '-m', message, *(arg for trailer in trailers for arg in ('--trailer', trailer)))
     return run('git', 'rev-parse', '--short', 'HEAD')
 
 
@@ -155,10 +158,13 @@ def main():
     pin.add_argument('--commit', help="the tag's commit, instead of asking GitHub")
     pin.add_argument('--note', default='', help='what the release brings, for the changelog entry and the commit')
     pin.add_argument('--minimum', help='raise the oldest Hyprflip release the panel accepts')
+    pin.add_argument('--no-render', action='store_true', help='skip tests/render.py')
+    pin.add_argument('--trailer', action='append', default=[], help='a commit trailer, such as Co-Authored-By: …')
     pin.add_argument('--dry-run', action='store_true')
     release = commands.add_parser('release', help='release OmaCards')
     release.add_argument('version', help='such as 0.2.0-rc.32')
     release.add_argument('--date', default=datetime.date.today().isoformat())
+    release.add_argument('--trailer', action='append', default=[], help='a commit trailer, such as Co-Authored-By: …')
     release.add_argument('--dry-run', action='store_true')
     args = parser.parse_args()
     try:
@@ -171,14 +177,15 @@ def main():
                 raise Refused('give releases such as v0.3.0-rc.27')
             edits = pin_edits(version, tag_commit('v' + version, args.commit), args.note, args.minimum)
             message = f'Pin Hyprflip to {version}' + (f'\n\n{wrap(args.note, "", "", 72)}' if args.note else '')
-            done = apply(edits, args.dry_run, tests, message)
+            render = [] if args.no_render else [[sys.executable, 'tests/render.py']]
+            done = apply(edits, args.dry_run, [*tests, *render], message, args.trailer)
         else:
             version = args.version.removeprefix('v')
             if not RELEASE.fullmatch(version) or not re.fullmatch(r'\d{4}-\d{2}-\d{2}', args.date):
                 raise Refused('give a version such as 0.2.0-rc.32 and a date such as 2026-11-18')
             validate = [['omarchy', 'plugin', 'validate', '.']] if shutil.which('omarchy') else []
             done = apply(release_edits(version, args.date), args.dry_run, [tests[0], *validate],
-                         f'Release OmaCards {version}')
+                         f'Release OmaCards {version}', args.trailer)
     except Refused as error:
         print(f'Nothing changed: {error}', file=sys.stderr)
         return 1

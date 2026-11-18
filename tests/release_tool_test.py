@@ -47,7 +47,8 @@ class ReleaseToolTest(unittest.TestCase):
                               timeout=120)
 
     def test_pin_moves_every_place_that_names_the_tested_hyprflip_and_commits(self):
-        result = self.tool('pin', 'v0.3.0-rc.27', '--commit', COMMIT, '--note', 'Cards say which program manages them.')
+        result = self.tool('pin', 'v0.3.0-rc.27', '--commit', COMMIT, '--note', 'Cards say which program manages them.',
+                           '--no-render', '--trailer', 'Co-Authored-By: Someone <someone@example.invalid>')
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertNotIn(self.pin, self.read('Service.qml') + self.read('README.md'))
         self.assertIn(f'hyprflipPin: "{COMMIT}"', self.read('Service.qml'))
@@ -61,12 +62,13 @@ class ReleaseToolTest(unittest.TestCase):
                       entry.replace('\n  ', ' '))
         self.assertTrue(all(len(line) <= 80 for line in entry.splitlines()[1:]), entry)
         self.assertEqual(self.git('log', '-1', '--format=%s%n%n%b'),
-                         'Pin Hyprflip to 0.3.0-rc.27\n\nCards say which program manages them.')
+                         'Pin Hyprflip to 0.3.0-rc.27\n\nCards say which program manages them.\n\n'
+                         'Co-Authored-By: Someone <someone@example.invalid>')
         self.assertEqual(self.git('status', '--porcelain'), '')
 
     def test_pin_can_raise_the_oldest_release_the_panel_accepts(self):
         others = self.read('README.md').count(self.minimum)
-        result = self.tool('pin', 'v0.3.0-rc.27', '--commit', COMMIT, '--minimum', '0.3.0-rc.26')
+        result = self.tool('pin', 'v0.3.0-rc.27', '--commit', COMMIT, '--minimum', '0.3.0-rc.26', '--no-render')
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn('hyprflipMinimum: "0.3.0-rc.26"', self.read('Service.qml'))
         readme = self.read('README.md')
@@ -77,9 +79,9 @@ class ReleaseToolTest(unittest.TestCase):
         self.assertIn('Hyprflip 0.3.0-rc.26 or later is now required.', self.read('CHANGELOG.md').replace('\n  ', ' '))
 
     def test_release_names_the_version_in_the_changelog_readme_and_manifest(self):
-        self.assertEqual(self.tool('pin', 'v0.3.0-rc.27', '--commit', COMMIT).returncode, 0)
+        self.assertEqual(self.tool('pin', 'v0.3.0-rc.27', '--commit', COMMIT, '--no-render').returncode, 0)
         previous = json.loads(self.read('manifest.json'))['version']
-        result = self.tool('release', '0.2.0-rc.99', '--date', '2026-11-19')
+        result = self.tool('release', '0.2.0-rc.99', '--date', '2026-11-19', '--trailer', 'Co-Authored-By: Someone <s@example.invalid>')
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn('## 0.2.0-rc.99 — 2026-11-19\n\n- Pin Hyprflip to', self.read('CHANGELOG.md'))
         self.assertNotIn('## Unreleased', self.read('CHANGELOG.md'))
@@ -89,9 +91,10 @@ class ReleaseToolTest(unittest.TestCase):
         self.assertEqual(self.git('log', '--format=%s', '-2').splitlines(),
                          ['Release OmaCards 0.2.0-rc.99', 'Pin Hyprflip to 0.3.0-rc.27'])
         self.assertIn('git push origin HEAD:main', result.stdout)
+        self.assertEqual(self.git('log', '-1', '--format=%b'), 'Co-Authored-By: Someone <s@example.invalid>')
 
     def test_a_dry_run_shows_the_change_and_makes_none(self):
-        result = self.tool('pin', 'v0.3.0-rc.27', '--commit', COMMIT, '--dry-run')
+        result = self.tool('pin', 'v0.3.0-rc.27', '--commit', COMMIT, '--no-render', '--dry-run')
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn(f'+    readonly property string hyprflipPin: "{COMMIT}"', result.stdout)
         self.assertEqual((self.git('rev-parse', 'HEAD'), self.git('status', '--porcelain')), (self.before, ''))
@@ -109,11 +112,16 @@ class ReleaseToolTest(unittest.TestCase):
         (self.root / 'README.md').write_text('changed\n')
         refused('pin', 'v0.3.0-rc.27', '--commit', COMMIT, why='commit or stash the changes to tracked files first')
         self.git('checkout', '--', 'README.md')
-        # A check that fails puts every file back.
+        # A check that fails puts every file back: the render checks too, which a pin runs last.
+        (self.root / 'tests/render.py').write_text('raise SystemExit("planted render")\n')
+        self.git('commit', '--quiet', '-am', 'planted')
+        self.before = self.git('rev-parse', 'HEAD')
+        refused('pin', 'v0.3.0-rc.27', '--commit', COMMIT, why='planted render')
+        self.assertEqual(self.git('status', '--porcelain'), '')
         (self.root / 'tests/pin_check.py').write_text('raise SystemExit("planted")\n')
         self.git('commit', '--quiet', '-am', 'planted')
         self.before = self.git('rev-parse', 'HEAD')
-        refused('pin', 'v0.3.0-rc.27', '--commit', COMMIT, why='a check failed, and every file is as it was')
+        refused('pin', 'v0.3.0-rc.27', '--commit', COMMIT, '--no-render', why='a check failed, and every file is as it was')
         self.assertEqual(self.git('status', '--porcelain'), '')
 
 

@@ -343,14 +343,16 @@ every place that names the tested Hyprflip to that tag: the commit in
 `Service.qml` and this README, the release it was tested with, the installer
 fixtures, and a changelog entry under Unreleased. It looks the tag's commit up
 on GitHub, or takes `--commit`. `--minimum <release>` also raises the oldest
-Hyprflip the panel accepts. It runs `tests/pin_check.py` and
-`tests/installer_test.py`, then commits.
+Hyprflip the panel accepts. It runs `tests/pin_check.py`,
+`tests/installer_test.py` and `tests/render.py` (`--no-render` skips the last),
+then commits.
 
 `python3 tools/release.py release 0.2.0-rc.32` turns Unreleased into the
 version's heading, names the version here and in `manifest.json`, checks the
 pin and `omarchy plugin validate .`, then commits. Both refuse while tracked
 files have changes, put every file back when a check fails, and push nothing.
-`--dry-run` shows the changes.
+`--dry-run` shows the changes, and `--trailer "Co-Authored-By: …"` adds a
+trailer to the commit.
 
 MIT licensed. Built on Hyprflip and Omarchy's native shell components.
 
