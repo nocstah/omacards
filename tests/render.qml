@@ -11,7 +11,7 @@ ShellRoot {
     id: harness
     property int step: 0
     property var original: null
-    property var shots: ["cards", "settings", "preferences-narrow", "preferences-light", "preferences-dark", "preferences-scaled", "shortcuts", "shortcut-record", "shortcut-conflict", "settings-narrow", "settings-scaled", "edit", "motion", "motion-refresh", "question", "empty", "narrow", "scaled", "light", "dark", "pane-edit", "library-ungrouped", "no-front", "unselected-card", "long-front", "scaled-entry", "install-missing", "install-progress", "install-waiting", "outdated", "navigation-offer", "refused", "multi-face", "multi-face-narrow", "multi-face-scaled", "multi-face-edit", "multi-face-remove", "multi-face-edit-narrow", "multi-face-edit-scaled", "edit-add-face", "one-face-covered", "one-face-edit", "settings-drift", "settings-dark", "error-dark", "ungroup-confirm",
+    property var shots: ["cards", "settings", "preferences-narrow", "preferences-light", "preferences-dark", "preferences-scaled", "shortcuts", "shortcut-record", "shortcut-conflict", "settings-narrow", "settings-scaled", "edit", "motion", "motion-refresh", "question", "empty", "narrow", "scaled", "light", "dark", "pane-edit", "library-ungrouped", "no-front", "unselected-card", "long-front", "scaled-entry", "install-missing", "install-progress", "install-waiting", "outdated", "navigation-offer", "refused", "multi-face", "multi-face-narrow", "multi-face-scaled", "multi-face-edit", "multi-face-remove", "multi-face-edit-narrow", "multi-face-edit-scaled", "edit-add-face", "one-face-covered", "one-face-edit", "settings-drift", "settings-dark", "error-dark", "ungroup-confirm", "managed-ungroup",
         // In-flight shots come last, each followed by the moment it finishes.
         "applying", "applied", "working", "worked", "installing", "installed"]
     // The edit page's pane row for an app, enabled or not.
@@ -98,6 +98,30 @@ ShellRoot {
         }
         // Hyprflip ungroups from a side with one app: Front here. With
         // several apps on every side, Ungroup is offered nowhere.
+        // OmaRelay's card: said in Edit and in Cards, with what OmaRelay does with Ungroup, Remove and Fullscreen.
+        if (name === "managed-ungroup") {
+            const note = harness.findItem(content, "ownerNote"), ungroupNote = harness.findItem(content, "ungroupOwnerNote")
+            if (!note || !note.visible || note.text !== "Managed by OmaRelay. It keeps your changes as its card.")
+                console.error("Edit should say OmaRelay manages the card: " + (note && note.text))
+            if (!ungroupNote || !ungroupNote.visible || ungroupNote.text !== "OmaRelay builds this card again on the next visit to its space.")
+                console.error("Ungroup should say OmaRelay builds the card again: " + (ungroupNote && ungroupNote.text))
+            if (content.ownerNote("remove") !== "OmaRelay saves the card without this app; it won't come back.") console.error("Remove's note for OmaRelay")
+            const other = JSON.parse(JSON.stringify(service.snapshot))
+            other.cards[0].owner = "Tiler"
+            service.snapshot = other
+            if (note.text !== "Managed by Tiler." || ungroupNote.text !== "Tiler may build this card again." || content.ownerNote("remove") !== "")
+                console.error("Another program's card should say only who manages it: " + note.text + " / " + ungroupNote.text)
+            const unmarked = JSON.parse(JSON.stringify(service.snapshot))
+            delete unmarked.cards[0].owner
+            service.snapshot = unmarked
+            if (note.visible || ungroupNote.visible) console.error("A card nobody manages should say nothing of an owner")
+            service.page = "cards"
+            const detail = harness.findItem(content, "cardDetail")
+            if (detail.text.indexOf("Managed by") >= 0) console.error("Cards said an owner for an unmarked card: " + detail.text)
+            service.snapshot = other
+            if (detail.text.indexOf(" · Managed by Tiler") < 0) console.error("Cards should say who manages the card: " + detail.text)
+            service.page = "edit"
+        }
         if (name === "ungroup-confirm") {
             if (content.ungroupFace !== 0) console.error("Ungroup should go through the one-app Front, not face " + content.ungroupFace)
             const crowded = JSON.parse(JSON.stringify(harness.original))
@@ -213,7 +237,7 @@ ShellRoot {
             console.error("A new setup's notice should say the movement shortcuts are on: " + service.notice)
         if (name === "worked" && service.busy) console.error("The fake open did not finish in time")
         if (name === "installed" && service.installing) console.error("The fake install did not finish in time")
-        if (["settings", "shortcuts", "pane-edit", "multi-face-edit", "one-face-covered", "one-face-edit", "motion-refresh", "ungroup-confirm", "navigation-offer", "applied", "worked", "installed"].includes(name)) console.log("OMACARDS_CHECKED " + name)
+        if (["settings", "shortcuts", "pane-edit", "multi-face-edit", "one-face-covered", "one-face-edit", "motion-refresh", "ungroup-confirm", "managed-ungroup", "navigation-offer", "applied", "worked", "installed"].includes(name)) console.log("OMACARDS_CHECKED " + name)
     }
     Cards.Service { id: service }
     FileView {
@@ -259,7 +283,7 @@ ShellRoot {
                 // An "after" shot captures the operation started before it.
                 if (["applied", "worked", "installed"].includes(next)) return
                 service.question = null
-                service.page = ["settings","shortcuts","edit","motion"].indexOf(next) >= 0 ? next : ["settings-dark", "settings-drift", "applying"].includes(next) ? "settings" : next === "ungroup-confirm" ? "edit" : next === "motion-refresh" ? "motion" : "cards"
+                service.page = ["settings","shortcuts","edit","motion"].indexOf(next) >= 0 ? next : ["settings-dark", "settings-drift", "applying"].includes(next) ? "settings" : ["ungroup-confirm", "managed-ungroup"].includes(next) ? "edit" : next === "motion-refresh" ? "motion" : "cards"
                 service.snapshot = JSON.parse(JSON.stringify(harness.original))
                 service.context = service.snapshot.context
                 service.selectedKey = "container:1"
@@ -413,6 +437,13 @@ ShellRoot {
                     service.notice = "Claude needs at least 600 px, so this card would have to be 1818 px wide, and the screen has 1512. Put fewer apps side by side, or give Claude a bigger share."
                 }
                 if (next === "ungroup-confirm") content.ungroupKey = "container:1"
+                // A card OmaRelay manages, as Hyprflip 0.3.0-rc.27 marks it, asked to ungroup.
+                if (next === "managed-ungroup") {
+                    const managed = JSON.parse(JSON.stringify(harness.original))
+                    managed.cards[0].owner = "OmaRelay"
+                    service.snapshot = managed
+                    content.ungroupKey = "container:1"
+                }
                 // Act after the page change's queued focusEntry, as a person would.
                 if (next === "applying") Qt.callLater(() => { harness.focusOn("label:Accent ring"); service.run("accent", {enabled: false, color: service.accentHex}) })
                 if (next === "motion-refresh") Qt.callLater(() => {

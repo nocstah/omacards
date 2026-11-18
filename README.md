@@ -262,6 +262,12 @@ definition unchanged. Opening an already open card goes to it; it does not
 launch a duplicate. Cancellation leaves launched apps open and uses Hyprflip's
 existing partial-operation recovery.
 
+A card another program keeps, such as OmaRelay's, says **Managed by OmaRelay**
+in Cards and in Edit (Hyprflip 0.3.0-rc.27 or later marks it). Every action
+still works. Before an edit that program would undo or keep, the panel says
+what it does: Ungroup's confirmation says OmaRelay builds the card again on the
+next visit to its space, and Remove and Fullscreen say what OmaRelay saves.
+
 If a window closes or moves while choosing, the operation stops with a refresh
 message. Keep the original native menu available explicitly:
 

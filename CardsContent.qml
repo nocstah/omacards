@@ -129,6 +129,23 @@ FocusScope {
     }
     function nextFace(index) { return card ? (index + 1) % card.faces.length : 0 }
     readonly property bool manyFaces: !!card && card.faces.length > 2
+    // The program that manages the card (Hyprflip 0.3.0-rc.27 card_owner), such as OmaRelay, or "".
+    readonly property string owner: !!card && typeof card.owner === "string" ? card.owner : ""
+    // What a managing program does with the panel's edits, as it has said. Another program gets "Managed by" alone,
+    // and a word on Ungroup that promises nothing.
+    readonly property var ownerNotes: ({
+        "OmaRelay": {
+            edit: "It keeps your changes as its card.",
+            ungroup: "OmaRelay builds this card again on the next visit to its space.",
+            remove: "OmaRelay saves the card without this app; it won't come back.",
+            fullscreen: "OmaRelay won't switch this card while it's fullscreen."
+        }
+    })
+    function ownerNote(kind) {
+        const notes = ownerNotes[owner]
+        if (notes) return notes[kind] || ""
+        return owner && kind === "ungroup" ? owner + " may build this card again." : ""
+    }
     // A covered card shows the window over it (Herdr, say), not its own face.
     function faceShown(index) { return !!card && (card.unfolded || (card.active === index && !card.covered)) }
     readonly property bool canShowFace: !!caps.show_face
@@ -488,7 +505,7 @@ FocusScope {
                                 required property var modelData
                                 Layout.fillWidth: true
                                 title: modelData.name
-                                detail: "Select to flip or edit"
+                                detail: (typeof modelData.owner === "string" && modelData.owner ? "Managed by " + modelData.owner + " · " : "") + "Select to flip or edit"
                                 checkable: true
                                 selected: root.card && modelData.key === root.card.key
                                 pointerGate: gate
@@ -501,7 +518,7 @@ FocusScope {
                         Layout.fillWidth: true
                         spacing: Style.space(8)
                         Label { text: root.card ? root.card.name : ""; Layout.fillWidth: true; font.bold: true; font.pixelSize: Style.font.title }
-                        Label { text: root.card ? "Workspace " + root.card.workspace_label + (root.card.unfolded ? (root.manyFaces ? " · All faces visible" : " · Both sides visible") : "") + (root.card.floating ? " · Floating" : "") + (root.card.fullscreen ? " · Fullscreen" : "") : ""; font.pixelSize: Style.font.bodySmall }
+                        Label { objectName: "cardDetail"; text: root.card ? "Workspace " + root.card.workspace_label + (root.card.unfolded ? (root.manyFaces ? " · All faces visible" : " · Both sides visible") : "") + (root.card.floating ? " · Floating" : "") + (root.card.fullscreen ? " · Fullscreen" : "") + (root.owner ? " · Managed by " + root.owner : "") : ""; Layout.fillWidth: true; wrapMode: Text.WordWrap; font.pixelSize: Style.font.bodySmall }
                         Repeater {
                             model: root.card ? root.card.faces : []
                             RowLayout {
@@ -524,7 +541,7 @@ FocusScope {
                             }
                             Action { text: root.card && root.card.unfolded ? "Fold" : "Unfold"; visible: root.card && root.card.kind === "container"; onClicked: root.service.cardAction("unfold") }
                             Action { text: root.card && root.card.floating ? "Tile card" : "Float card"; visible: !!root.caps.floating; enabled: !(root.card && root.card.fullscreen); tooltipText: root.card && root.card.fullscreen ? "Leave fullscreen first" : ""; onClicked: root.service.cardAction("floating") }
-                            Action { text: root.card && root.card.fullscreen ? "Leave fullscreen" : "Fullscreen"; visible: !!root.caps.fullscreen && root.card && root.card.native === true; tooltipText: "Fill the screen with the whole card · Apps keep their toolbars"; onClicked: root.service.cardAction("fullscreen") }
+                            Action { text: root.card && root.card.fullscreen ? "Leave fullscreen" : "Fullscreen"; visible: !!root.caps.fullscreen && root.card && root.card.native === true; tooltipText: "Fill the screen with the whole card · Apps keep their toolbars" + (root.ownerNote("fullscreen") && !(root.card && root.card.fullscreen) ? " · " + root.ownerNote("fullscreen") : ""); onClicked: root.service.cardAction("fullscreen") }
                             Action { text: "Edit"; visible: root.card && root.card.kind === "container"; onClicked: root.service.page = "edit" }
                             Action { text: "Save…"; visible: root.card && root.card.kind === "container"; onClicked: root.edit("save", root.card.active, null) }
                         }
@@ -822,6 +839,16 @@ FocusScope {
                     Layout.fillWidth: true
                     spacing: Style.space(12)
                     Label { text: root.card ? root.card.name : ""; font.bold: true; Layout.fillWidth: true }
+                    Label {
+                        objectName: "ownerNote"
+                        visible: root.owner !== ""
+                        text: root.owner ? "Managed by " + root.owner + "." + (root.ownerNote("edit") ? " " + root.ownerNote("edit") : "") : ""
+                        color: Commons.Color.muted
+                        font.pixelSize: Style.font.bodySmall
+                        Layout.fillWidth: true
+                        Layout.topMargin: -Style.space(8)
+                        wrapMode: Text.WordWrap
+                    }
                     Repeater {
                         model: root.card ? root.card.faces : []
                         ColumnLayout {
@@ -920,8 +947,9 @@ FocusScope {
                                             text: "Remove"
                                             accessibleName: "Remove " + paneBlock.appName
                                             enabled: face.modelData.panes.length > 1 || root.manyFaces
-                                            tooltipText: face.modelData.panes.length > 1 ? "The app stays open" : root.manyFaces ? "Removes this face · The app stays open"
-                                                : "The only app on " + root.faceName(face.modelData.index) + " stays · Ungroup the card instead"
+                                            tooltipText: (face.modelData.panes.length > 1 ? "The app stays open" : root.manyFaces ? "Removes this face · The app stays open"
+                                                : "The only app on " + root.faceName(face.modelData.index) + " stays · Ungroup the card instead") +
+                                                (enabled && root.ownerNote("remove") ? " · " + root.ownerNote("remove") : "")
                                             onClicked: root.edit("remove", face.modelData.index, root.paneAddress)
                                         }
                                         Action {
@@ -1019,6 +1047,13 @@ FocusScope {
                             Layout.fillWidth: true
                             text: root.card ? "Ungroup “" + root.card.name + "”? Its apps stay open as separate windows." : ""
                             font.bold: true
+                        }
+                        Label {
+                            objectName: "ungroupOwnerNote"
+                            Layout.fillWidth: true
+                            visible: text !== ""
+                            text: root.ownerNote("ungroup")
+                            wrapMode: Text.WordWrap
                         }
                         Flow {
                             Layout.fillWidth: true

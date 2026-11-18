@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+- A card another program keeps says so: **Managed by OmaRelay** in the card
+  list, the card's details and Edit. Every action still works; the panel says
+  beforehand what that program does with it. Ungroup's confirmation says
+  OmaRelay builds the card again on the next visit to its space, Remove that
+  OmaRelay saves the card without the app, and Fullscreen that OmaRelay won't
+  switch the card while it is fullscreen. Another program's card says only who
+  manages it, and that it may build an ungrouped card again. Needs a Hyprflip
+  that marks cards (0.3.0-rc.27); with an older one nothing changes.
 ## 0.2.0-rc.31 — 2026-11-18
 
 - Pin Hyprflip to [`v0.3.0-rc.26`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.26)
