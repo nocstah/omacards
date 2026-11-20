@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.0-rc.36 — 2026-11-21
 
 - Super+Ctrl+Alt+L lists OmaRelay's card templates for the space in Herdr and
   applies one after asking. They follow the saved cards under **Templates for**
