@@ -33,7 +33,9 @@ assert connection['HYPRLAND_INSTANCE_SIGNATURE'] != os.environ.get('HYPRLAND_INS
 home = root / 'omacards-navigation-home'
 env = os.environ | connection | {
     'HOME': str(home), 'XDG_CONFIG_HOME': str(home / '.config'), 'XDG_STATE_HOME': str(home / '.local/state'),
-    'XDG_DATA_HOME': str(home / '.local/share'), 'XDG_CACHE_HOME': str(home / '.cache'), 'HYPRFLIP_MENU': 'fuzzel'}
+    'XDG_DATA_HOME': str(home / '.local/share'), 'XDG_CACHE_HOME': str(home / '.cache'), 'HYPRFLIP_MENU': 'fuzzel',
+    # No OmaRelay: its templates must never reach this PC's live desktop helper.
+    'OMACARDS_OMARELAY': str(home / 'no-omarelay/ovis.py')}
 env.pop('DISPLAY', None)
 OWN = 'OmaCards test: own Super+Shift+1'
 helper = home / '.local/lib/hyprflip/control.py'

@@ -12,6 +12,16 @@ ShellRoot {
     property int step: 0
     property var original: null
     property var shots: ["cards", "settings", "preferences-narrow", "preferences-light", "preferences-dark", "preferences-scaled", "shortcuts", "shortcut-record", "shortcut-conflict", "settings-narrow", "settings-scaled", "edit", "motion", "motion-refresh", "question", "empty", "narrow", "scaled", "light", "dark", "pane-edit", "library-ungrouped", "no-front", "unselected-card", "long-front", "scaled-entry", "install-missing", "install-progress", "install-waiting", "outdated", "navigation-offer", "refused", "multi-face", "multi-face-narrow", "multi-face-scaled", "multi-face-edit", "multi-face-remove", "multi-face-edit-narrow", "multi-face-edit-scaled", "edit-add-face", "one-face-covered", "one-face-edit", "settings-drift", "settings-dark", "error-dark", "ungroup-confirm", "managed-ungroup",
+        // OmaRelay's templates, answered by tests/fake-omarelay.py; the rest of the shots run with no OmaRelay.
+        "templates-here", "templates-here-narrow", "templates-here-scaled", "templates-here-dark", "templates-only", "templates-search",
+        "templates-nomatch", "templates-confirm-here", "templates-confirm-here-narrow", "templates-confirm-here-scaled",
+        "templates-confirm-here-dark", "templates-confirm-elsewhere", "templates-confirm-nocard", "templates-escape", "templates-keep",
+        "templates-enter-enter", "templates-apply", "templates-apply-changed", "templates-apply-garbage", "templates-applying",
+        "templates-apply-hang", "templates-cards-off", "templates-no-helper", "templates-helper-busy", "templates-helper-old",
+        "templates-other-machine", "templates-odd-code", "templates-unreadable", "templates-missing", "templates-in-use-changed",
+        "templates-hostile", "templates-late", "templates-late-moved", "templates-absent-base", "templates-absent-no-marker",
+        "templates-absent-usage", "templates-absent-garbage", "templates-absent-hang", "templates-absent-no-workspace",
+        "templates-refresh-quiet",
         // In-flight shots come last, each followed by the moment it finishes.
         "applying", "applied", "working", "worked", "installing", "installed"]
     // The edit page's pane row for an app, enabled or not.
@@ -30,6 +40,214 @@ ShellRoot {
         for (const child of item.children || []) visibleItems(child, test, found, seen)
         if (item.contentItem && item.contentItem !== item) visibleItems(item.contentItem, test, found, seen)
         return found
+    }
+    // OmaRelay's templates. The fake answers as the control file says; the record file holds each argv it got.
+    readonly property string fakeOmarelay: Quickshell.env("OMACARDS_FAKE_OMARELAY")
+    readonly property string missingOmarelay: Quickshell.env("OMACARDS_OMARELAY")
+    // A shot can wait for a condition before its capture, then run one more step (which may wait again).
+    property var waitFor: null
+    property var afterWait: null
+    property real waitUntil: 0
+    property var noted: ({})
+    function wait(test, ms, then) { waitFor = test; waitUntil = Date.now() + (ms || 5000); afterWait = then || null }
+    function fake(control) { fakeControl.setText(JSON.stringify(control)); fakeControl.waitForJob() }
+    // FileView loads and writes in the background: wait for each before trusting the file.
+    function records() { fakeRecord.reload(); fakeRecord.waitForJob(); return fakeRecord.text().split("\n").filter(l => l.trim()).map(l => JSON.parse(l)) }
+    function applies() { return records().filter(r => r[3] === "apply") }
+    function lists() { return records().filter(r => r[3] === "list") }
+    function clearRecords() { fakeRecord.setText(""); fakeRecord.waitForJob() }
+    function search() { return findItem(content, "librarySearch") }
+    function templateRows() { return visibleItems(content, i => i.title !== undefined && i.selected !== undefined && typeof i.detail === "string" && i.detail.startsWith("Template")) }
+    function action(name) { return visibleItems(content, i => i.accessibleName !== undefined && i.clicked !== undefined && (i.accessibleName === name || i.text === name))[0] || null }
+    function shown(text) { return visibleItems(content, i => i.text === text && i.font !== undefined).length > 0 }
+    function listTemplates(answer, then, extra) {
+        service.omarelay = fakeOmarelay
+        fake(Object.assign({templates: answer, apply: "soon"}, extra || {}))
+        service.readTemplates()
+        wait(() => !service.readingTemplates, 5000, then)
+    }
+    // Enter on the Review template from the search field, as a person would.
+    function enterReview() {
+        content.focusEntry()
+        content.cursor = content.libraryRows.findIndex(r => r.kind === "template" && r.row.name === "Review")
+        search().accepted()
+    }
+    function untilKeep(then) { wait(() => focusName() === "accessibleName:Keep card", 2000, then) }
+    readonly property var templateCases: ({"templates-cards-off": "cards-off", "templates-no-helper": "no-helper", "templates-helper-busy": "helper-busy",
+        "templates-helper-old": "helper-old", "templates-other-machine": "other-machine", "templates-odd-code": "odd-code",
+        "templates-unreadable": "unreadable", "templates-missing": "missing-template", "templates-in-use-changed": "in-use-changed",
+        "templates-hostile": "hostile-label"})
+    function templateSetup(next) {
+        service.templatesTimeout = 9000
+        // The apply from the shot before is still running: it ends with the fake answering and the panel open.
+        if (next !== "templates-apply-hang") { service.omarelay = missingOmarelay; service.templateApplyTimeout = 45000; service.owner = null; fakeOwner.opened = false }
+        content.templateConfirm = null
+        content.filter = ""
+        content.cursor = 0
+        if (!next.startsWith("templates-")) { service.templates = null; return }
+        const v = next.replace(/-(narrow|scaled|dark)$/, "")
+        if (!v.startsWith("templates-absent")) window.height = 1100
+        if (next.endsWith("-narrow")) { window.width = 340; window.height = 1500 }
+        if (next.endsWith("-scaled")) { window.width = 936; window.height = 2600; Style.spacingScale = 2; Style.fontBaseSize = 24 }
+        const clone = () => JSON.parse(JSON.stringify(harness.original))
+        if (v === "templates-here") listTemplates("live-here")
+        else if (v === "templates-only") {
+            const d = clone(); d.cards = []; d.saved = []; service.snapshot = d; service.selectedKey = ""
+            listTemplates("live-here", () => content.focusEntry())
+        } else if (v === "templates-search") {
+            const d = clone(); d.saved.push({name: "Code review", token: "fixture-zed", open: false, detail: "Open here", description: "Zed ↔ Terminal"})
+            service.snapshot = d
+            // Down from the saved row crosses to the template row.
+            listTemplates("live-here", () => { content.focusEntry(); content.filter = "zed"; content.cursor = Math.min(content.libraryRows.length - 1, content.cursor + 1) })
+        } else if (v === "templates-nomatch") listTemplates("live-here", () => { content.focusEntry(); content.filter = "qqq" })
+        else if (v === "templates-confirm-here") listTemplates("live-here", () => { enterReview(); untilKeep() })
+        else if (v === "templates-confirm-elsewhere" || v === "templates-confirm-nocard")
+            listTemplates(v === "templates-confirm-elsewhere" ? "live-elsewhere" : "live-nocard", () => {
+                const state = findItem(content, "templateState")
+                noted.state = state.visible ? state.text : ""
+                enterReview(); untilKeep()
+            })
+        else if (v === "templates-escape" || v === "templates-keep" || v === "templates-enter-enter") {
+            clearRecords()
+            listTemplates("live-here", () => {
+                enterReview()
+                // A second Enter at once lands on the row again; the next one on Keep card.
+                if (v === "templates-enter-enter") search().accepted()
+                noted.cursor = content.cursor
+                untilKeep(() => { if (v === "templates-escape") content.back(); else action("Keep card").clicked() })
+            })
+        } else if (["templates-apply", "templates-apply-changed", "templates-apply-garbage", "templates-applying"].includes(v)) {
+            service.owner = fakeOwner; fakeOwner.opened = true
+            clearRecords()
+            if (v === "templates-applying") service.templateApplyTimeout = 2500
+            const answer = {"templates-apply": "soon", "templates-apply-changed": "changed", "templates-apply-garbage": "garbage", "templates-applying": "hang"}[v]
+            listTemplates("live-here", () => {
+                enterReview()
+                untilKeep(() => {
+                    action("Replace").clicked()
+                    // The panel closes before OmaRelay is asked.
+                    noted.closedFirst = !fakeOwner.opened && applies().length === 0
+                    if (v === "templates-applying") wait(() => service.applyingTemplate, 3000, () => { fakeOwner.opened = true; service.readTemplates() })
+                    else wait(() => !service.applyingTemplate && service.templateApplying === null && applies().length > 0, 5000)
+                })
+            }, {apply: answer})
+        } else if (v === "templates-apply-hang") wait(() => !service.applyingTemplate && service.templateApplying === null, 6000)
+        else if (templateCases[v]) listTemplates(templateCases[v])
+        else if (v === "templates-absent-base") { service.readTemplates(); wait(() => !service.readingTemplates, 3000) }
+        else if (v.startsWith("templates-absent-")) { service.templatesTimeout = 1500; listTemplates(v.slice("templates-absent-".length)) }
+        else if (v === "templates-late" || v === "templates-late-moved") {
+            const d = clone(); d.saved = []; service.snapshot = d
+            service.templates = null
+            content.focusEntry()
+            if (v === "templates-late-moved") focusOn("accessibleName:Edit")
+            listTemplates("live-here", null, {delay: 1})
+        } else if (v === "templates-refresh-quiet") {
+            clearRecords()
+            service.omarelay = fakeOmarelay
+            fake({templates: "live-here"})
+            service.prepareOpen(fakeOwner)
+            const start = Date.now()
+            // Two 5 s polls, then a refresh as a Hyprland event makes one: none of them lists templates again.
+            wait(() => Date.now() - start > 12000, 14000, () => { service.refresh(true); wait(() => !service.refreshing, 3000) })
+        } else console.error("No setup for " + next)
+    }
+    function templateChecks(name) {
+        const fail = message => console.error("Templates, " + name + ": " + message)
+        const heading = findItem(content, "templateHeading"), state = findItem(content, "templateState")
+        const rows = templateRows()
+        const detail = title => (rows.find(r => r.title === title) || {detail: ""}).detail
+        const stateText = state.visible ? state.text : ""
+        const review = (content.templateRows.find(t => t.id === "t0123456789") || {}).token
+        if (name === "templates-here") {
+            if (!heading.visible || heading.text !== "Templates for omarelay") fail("heading " + heading.text)
+            if (rows.map(r => r.title).join("|") !== "Browser ↔ terminals|Terminals ↔ terminals|Zed ↔ terminals|No card|Review") fail("rows " + rows.map(r => r.title))
+            if (detail("Browser ↔ terminals") !== "Template · In use · Built-in · New spaces\nWorkspace browser ↔ Workspace terminal") fail(detail("Browser ↔ terminals"))
+            if (detail("Review") !== "Template · Yours\nWorkspace browser + Obsidian ↔ Workspace terminal\nWide reading layout") fail(detail("Review"))
+            if (detail("No card") !== "Template · Built-in\nHerdr alone, no card") fail(detail("No card"))
+            if (stateText) fail("a live space here should have no state line: " + stateText)
+            if (!shown("Edit templates in Inapse Spaces' settings: Spaces → Templates.")) fail("no footnote")
+            if (search().placeholderText !== "Search saved cards and templates…") fail("placeholder " + search().placeholderText)
+        }
+        if (name === "templates-only") {
+            if (!search().visible || !search().activeFocus) fail("the search field should show and take focus")
+            if (search().placeholderText !== "Search saved cards and templates…") fail("placeholder " + search().placeholderText)
+            if (!shown("Save a card to reopen its apps and layout later.")) fail("the empty saved line should stay")
+            if (rows.length !== 5) fail(rows.length + " rows")
+        }
+        if (name === "templates-search") {
+            const saved = visibleItems(content, i => i.title === "Code review" && i.selected !== undefined)[0]
+            if (content.savedRows.length !== 1 || rows.length !== 1 || rows[0].title !== "Zed ↔ terminals") fail("zed should find one saved card and one template: " + rows.map(r => r.title))
+            if (content.cursor !== 1 || !rows[0] || !rows[0].selected || !saved || saved.selected) fail("Down should select the template row")
+        }
+        if (name === "templates-nomatch") {
+            if (!shown("Nothing matches your search. Escape clears it.")) fail("no no-match line")
+            if (findItem(content, "templateGroup").visible) fail("templates that do not match should leave the group out")
+            content.filter = ""
+            if (templateRows().length !== 5 || shown("Nothing matches your search. Escape clears it.")) fail("clearing the search should bring the rows back")
+        }
+        if (name === "templates-confirm-here") {
+            if (focusName() !== "accessibleName:Keep card") fail("focus should start on Keep card, not " + focusName())
+            if (!shown("Replace this card with “Review”?") || !shown("Save it as a template first to keep it.")) fail("the question")
+            if (!action("Replace this card with “Review”")) fail("Replace's accessible name")
+            if (rows.length || shown("Edit templates in Inapse Spaces' settings: Spaces → Templates.")) fail("the rows and the footnote should hide")
+        }
+        if (name === "templates-confirm-elsewhere" || name === "templates-confirm-nocard") {
+            if (noted.state !== "omarelay is open in Herdr away from this workspace. A template you pick applies to its card there.") fail("state line " + noted.state)
+            if (!shown("Replace omarelay's card with “Review”?") || stateText) fail("the question should name the space, without the state line")
+            if (focusName() !== "accessibleName:Keep card") fail("focus " + focusName())
+        }
+        if (["templates-escape", "templates-keep", "templates-enter-enter"].includes(name)) {
+            if (content.templateConfirm || !search().activeFocus || content.cursor !== noted.cursor) fail("back to the search, on the same row")
+            if (applies().length) fail("applied: " + JSON.stringify(applies()))
+            if (rows.length !== 5) fail("the rows should come back")
+        }
+        if (name === "templates-apply") {
+            const argv = applies()
+            const expected = ["workspace-browsers", "cards", "template", "apply", "t0123456789", "--space", "spQ7xLm2", "--token", review, "--json", "--notify"]
+            if (!noted.closedFirst) fail("the panel should close before OmaRelay is asked")
+            if (argv.length !== 1 || JSON.stringify(argv[0]) !== JSON.stringify(expected)) fail("argv " + JSON.stringify(argv))
+            if (argv.length && argv[0].some(a => a === "here" || a === "--app" || a.indexOf("Review") >= 0 || a.indexOf("omarelay") >= 0)) fail("argv carries more than ids")
+            if (fakeOwner.opened || service.failed) fail("a protocol answer should leave the panel closed")
+        }
+        if (name === "templates-apply-changed" && (!noted.closedFirst || fakeOwner.opened || service.failed || service.notice)) fail("a refusal is OmaRelay's to say")
+        const unknown = "OmaRelay did not say whether “Review” was applied to omarelay. Look at its card before you try again."
+        if ((name === "templates-apply-garbage" || name === "templates-apply-hang") && (!service.failed || service.notice !== unknown)) fail("notice " + service.notice)
+        if (name === "templates-apply-hang" && (service.applyingTemplate || service.templateApplying)) fail("the apply should be stopped")
+        if (name === "templates-applying") {
+            if (stateText !== "Applying “Review” to omarelay…") fail("state " + stateText)
+            if (rows.length !== 5 || rows.some(r => r.enabled)) fail("the rows should show, disabled")
+            content.askTemplate(content.templateRows[0])
+            if (content.templateConfirm) fail("a template was offered while one applies")
+        }
+        const lines = {"templates-cards-off": "Card mode is off. A template you pick applies when card mode is on and omarelay is next shown.",
+                       "templates-no-helper": "OmaRelay's desktop helper is not running. A template you pick applies when omarelay is next shown.",
+                       "templates-helper-busy": "OmaRelay's desktop helper is busy. A template you pick applies when it can.",
+                       "templates-other-machine": "The space in Herdr belongs to another machine. Change its card there.",
+                       "templates-odd-code": "Templates can't be applied right now (settings_unreadable)."}
+        if (lines[name] !== undefined && stateText !== lines[name]) fail("state " + stateText)
+        if (["templates-cards-off", "templates-no-helper", "templates-helper-busy"].includes(name) && rows.length !== 5) fail(rows.length + " rows")
+        if (["templates-helper-old", "templates-other-machine", "templates-odd-code"].includes(name) && rows.length) fail("no rows without a space")
+        if (name === "templates-helper-old" && (findItem(content, "templateNotice").text !== "OmaRelay's desktop helper is older than OmaRelay. Restart it to apply templates." || stateText))
+            fail("the restart notice")
+        if (name === "templates-unreadable" && (rows.length !== 4 || !findItem(content, "templateUnreadable").visible)) fail("built-ins and the unreadable line: " + rows.map(r => r.title))
+        if (name === "templates-missing" && (!shown("omarelay's template was deleted. Its card builds from the built-in one.") || rows.some(r => r.detail.indexOf("In use") >= 0)))
+            fail("the deleted template")
+        if (name === "templates-in-use-changed" && !detail("Browser ↔ terminals").startsWith("Template · In use · Changed since · Built-in · New spaces")) fail(detail("Browser ↔ terminals"))
+        if (name === "templates-hostile") {
+            const literal = visibleItems(content, i => i.text === "<i>T</i>" && i.textFormat !== undefined)
+            if (heading.text !== "Templates for <b>x</b>\n<img src=a>" || heading.textFormat !== Text.PlainText) fail("heading " + heading.text)
+            if (!literal.length || literal.some(l => l.textFormat !== Text.PlainText)) fail("the name should be plain text")
+        }
+        if (name.startsWith("templates-absent-") && name !== "templates-absent-base") {
+            if (findItem(content, "templateGroup").visible || search().placeholderText !== "Search saved cards…") fail("the section should be absent")
+            if (name !== "templates-absent-no-workspace" && service.templates) fail("the answer should not be accepted")
+        }
+        if (name === "templates-late" && !search().activeFocus) fail("the late answer's search should take focus from the key catcher, focus " + focusName())
+        if (name === "templates-late-moved" && focusName() !== "accessibleName:Edit") fail("a late answer took focus from " + focusName())
+        if (name === "templates-refresh-quiet" && lists().length !== 1) fail(lists().length + " list calls")
+        const checked = {"templates-absent-no-workspace": "templates-absent", "templates-late-moved": "templates-late", "templates-late": ""}
+        const logged = checked[name] !== undefined ? checked[name] : /-(narrow|scaled|dark)$/.test(name) || name === "templates-absent-base" || name.startsWith("templates-absent-") ? "" : name
+        if (logged) console.log("OMACARDS_CHECKED " + logged)
     }
     function showingLabels() { return harness.visibleItems(content, i => i.text === "Showing" && i.font !== undefined) }
     function findItem(item, name) {
@@ -199,6 +417,7 @@ ShellRoot {
             const back = harness.visibleItems(content, i => i.accessibleName === "Move Telegram to Front")
             if (back.length !== 1 || !back[0].enabled) console.error("Other side should be enabled on a two-face card")
         }
+        if (name.startsWith("templates-")) templateChecks(name)
         // A refresh that rebuilds the rows puts focus back on the same row.
         if (name === "motion-refresh" && focusName() !== "title:Slide") console.error("A refresh lost focus: " + focusName())
         // A saved preference keeps the page and the control in focus.
@@ -259,8 +478,18 @@ ShellRoot {
             service.context = service.snapshot.context
             service.selectedKey = "container:1"
             harness.seed(false)
+            service.readTemplates()
             capture.start()
         }
+    }
+    FileView { id: fakeControl; path: Quickshell.env("OMACARDS_FAKE_CONTROL"); blockWrites: true; printErrors: false }
+    FileView { id: fakeRecord; path: Quickshell.env("OMACARDS_FAKE_RECORD"); blockLoading: true; blockWrites: true; printErrors: false }
+    // Stands in for the bar widget: Service opens and dismisses it.
+    QtObject {
+        id: fakeOwner
+        property bool opened: false
+        function dismiss() { opened = false }
+        function reveal() { opened = true }
     }
     Window {
         id: window
@@ -283,6 +512,15 @@ ShellRoot {
         repeat: true
         onTriggered: {
             const name = harness.shots[harness.step]
+            if (harness.waitFor) {
+                const ready = harness.waitFor()
+                if (!ready && Date.now() < harness.waitUntil) return
+                if (!ready) console.error("Timed out waiting before the " + name + " capture")
+                harness.waitFor = null
+                const then = harness.afterWait
+                harness.afterWait = null
+                if (then) { then(); return }
+            }
             area.grabToImage(function(result) {
                 if (!result.saveToFile(Quickshell.env("OMACARDS_CAPTURE_DIR") + "/" + name + ".png")) throw new Error("Capture failed")
                 harness.checkKeys(name)
@@ -466,6 +704,7 @@ ShellRoot {
                 })
                 if (next === "working") service.savedAction("open", service.snapshot.saved[1])
                 if (next === "installing") service.installHyprflip()
+                harness.templateSetup(next)
                 if (next === "pane-edit") { service.page = "edit"; const d = JSON.parse(JSON.stringify(harness.original)); d.cards[0].active = 1; d.cards[0].current = "0xb"; service.snapshot = d; content.paneCardKey = "container:1"; content.paneAddress = "0xc"; window.height = 780 }
             })
         }

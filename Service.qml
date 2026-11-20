@@ -62,6 +62,17 @@ Scope {
     property bool resumed: false
     // The last snapshot text, so an unchanged refresh leaves the rows (and focus) alone.
     property string snapshotText: ""
+    // OmaRelay's card templates (OmaRelay docs/workspace-browsers.md, "Templates in OmaCards"): optional. With no
+    // OmaRelay, or one without library contract 1, templates stays null and the page is as before. Tests point
+    // omarelay at tests/fake-omarelay.py and shorten the two time limits.
+    property string omarelay: Quickshell.env("OMACARDS_OMARELAY")
+        || ((Quickshell.env("XDG_DATA_HOME") || (Quickshell.env("HOME") + "/.local/share")) + "/omarelay/current/scripts/ovis.py")
+    property var templates: null          // the accepted list answer, or null
+    property var templateApplying: null   // {name, label} while an apply runs
+    property int templatesTimeout: 9000
+    readonly property bool readingTemplates: templatesProcess.running
+    readonly property bool applyingTemplate: templateApplyProcess.running
+    property int templateApplyTimeout: 45000
     readonly property bool busy: operationProcess.running || installProcess.running
     readonly property bool refreshing: snapshotProcess.running
     readonly property var cardsHere: (snapshot.cards || []).filter(c => context && c.workspace === context.workspace)
@@ -90,14 +101,60 @@ Scope {
     function prepareOpen(widget) {
         if (owner && owner !== widget) owner.dismiss()
         owner = widget
-        if (busy) { widget.reveal(); return }
+        if (busy) { readTemplates(); widget.reveal(); return }
         pendingOwner = widget
         resumed = false
         pendingPage = requestedPage
         requestedPage = "cards"
         notice = ""
         failed = false
+        readTemplates()
         refresh(false)
+    }
+    // OmaRelay's templates for the space in Herdr: read once per open, never on the poll. An apply in flight keeps
+    // the answer it was picked from, so a panel opened meanwhile can say what is being applied.
+    function readTemplates() {
+        if (templateApplyProcess.running) return
+        templates = null
+        if (templatesProcess.running) return
+        templatesProcess.command = ["python3", omarelay, "workspace-browsers", "cards", "template", "list", "--space", "here", "--json"]
+        templatesProcess.running = true
+        templatesDeadline.restart()
+    }
+    // The last non-empty line of OmaRelay's output, when it is a protocol 1 object; otherwise null.
+    function templateAnswer(text) {
+        const lines = (text || "").split("\n").filter(line => line.trim() !== "")
+        if (!lines.length) return null
+        try {
+            const answer = JSON.parse(lines[lines.length - 1])
+            return answer && typeof answer === "object" && !Array.isArray(answer) && answer.protocol === 1 ? answer : null
+        } catch (error) {
+            return null
+        }
+    }
+    // A protocol code for the one log line OmaCards writes: never anything else from OmaRelay's output.
+    function templateCode(answer) {
+        return answer && typeof answer.code === "string" && /^[a-z_]{1,40}$/.test(answer.code) ? " " + answer.code : ""
+    }
+    // Only ids and a token go on an apply's command line, and only in OmaRelay's own shapes.
+    function templateArgsValid(id, token, spaceId) {
+        return typeof id === "string" && /^(browser|terminals|editor|none|t[0-9a-f]{10})$/.test(id)
+            && typeof token === "string" && /^[0-9a-f]{64}$/.test(token)
+            && typeof spaceId === "string" && /^[A-Za-z0-9_-]{1,64}$/.test(spaceId)
+    }
+    // c: {id, token, name, spaceId, spaceLabel}, all from one list answer. The space is always the listed id, never
+    // "here": Herdr's focus can move between the list and Replace.
+    function applyTemplate(c) {
+        if (templateApplyProcess.running || !templates || !c || !templateArgsValid(c.id, c.token, c.spaceId)) return
+        templateApplying = {name: c.name, label: c.spaceLabel}
+        dismiss()
+        // KeyboardPanel releases its grab as soon as open becomes false, as for a handoff.
+        Qt.callLater(function() {
+            templateApplyProcess.command = ["python3", root.omarelay, "workspace-browsers", "cards", "template", "apply", c.id,
+                                            "--space", c.spaceId, "--token", c.token, "--json", "--notify"]
+            templateApplyProcess.running = true
+            templateApplyDeadline.restart()
+        })
     }
     function refresh(keepContext) {
         if (busy || snapshotProcess.running) return
@@ -368,6 +425,48 @@ Scope {
             Qt.callLater(function() { root.refresh(false) })
         }
     }
+    // OmaRelay's output is read, never logged: one line with the exit status and a protocol code at most.
+    Process {
+        id: templatesProcess
+        stdout: StdioCollector { id: templatesOutput; waitForEnd: true }
+        onExited: (exitCode, exitStatus) => {
+            templatesDeadline.stop()
+            const answer = root.templateAnswer(templatesOutput.text)
+            // An OmaRelay without library contract 1 answers without "library": the section stays absent, silently.
+            if (answer && answer.ok === true && answer.library === 1 && Array.isArray(answer.templates)) root.templates = answer
+            else if (exitCode !== 0 || !answer) console.warn("[omacards] templates: list exit " + exitCode + root.templateCode(answer))
+        }
+    }
+    Timer { id: templatesDeadline; interval: root.templatesTimeout; onTriggered: if (templatesProcess.running) templatesProcess.signal(15) }
+    Process {
+        id: templateApplyProcess
+        stdout: StdioCollector { id: templateApplyOutput; waitForEnd: true }
+        onExited: (exitCode, exitStatus) => {
+            templateApplyDeadline.stop()
+            const answer = root.templateAnswer(templateApplyOutput.text)
+            const applied = root.templateApplying || {name: "", label: ""}
+            root.templateApplying = null
+            if (answer) {
+                // OmaRelay has put its own sentence on the desktop, for success or refusal.
+                if (answer.ok !== true) console.warn("[omacards] templates: apply exit " + exitCode + root.templateCode(answer))
+            } else {
+                console.warn("[omacards] templates: apply exit " + exitCode)
+                root.failed = true
+                root.notice = "OmaRelay did not say whether “" + applied.name + "” was applied to " + applied.label + ". Look at its card before you try again."
+                // Back to the Cards page with the notice, unless the person went elsewhere.
+                const sameWorkspace = root.context && Hyprland.focusedWorkspace && Hyprland.focusedWorkspace.id === root.context.workspace
+                if (sameWorkspace && root.owner && !root.owner.opened) {
+                    root.pendingOwner = root.owner
+                    root.pendingPage = "cards"
+                    // Next tick: the process may still count as running while it reports its exit.
+                    Qt.callLater(function() { root.readTemplates(); root.refresh(false) })
+                    return
+                }
+            }
+            if (root.owner && root.owner.opened) Qt.callLater(root.readTemplates)
+        }
+    }
+    Timer { id: templateApplyDeadline; interval: root.templateApplyTimeout; onTriggered: if (templateApplyProcess.running) templateApplyProcess.signal(15) }
     // Theme switches update several colors at once; send the settled accent.
     // The helper skips unchanged colors, and older Hyprflip builds just refuse.
     Timer {
@@ -411,7 +510,8 @@ Scope {
         function status(): string {
             return JSON.stringify({available: root.snapshot.available, opened: root.owner ? root.owner.opened : false,
                                    busy: root.busy, page: root.page, cards: root.snapshot.cards.length,
-                                   saved: root.snapshot.saved.length, error: root.failed ? root.notice : ""})
+                                   saved: root.snapshot.saved.length, error: root.failed ? root.notice : "",
+                                   templates: root.templates ? root.templates.templates.length : -1, applying: root.templateApplying !== null})
         }
         function close(): void { root.dismiss() }
         function open(page: string): string {
@@ -421,6 +521,7 @@ Scope {
         }
     }
     Component.onCompleted: accentSync.restart()
+    // A template list or apply is left to finish: OmaRelay writes its profile atomically, under its own lock.
     Component.onDestruction: {
         if (operationProcess.running) {
             operationProcess.write('{"cancel":true}\n')

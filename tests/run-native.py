@@ -22,7 +22,9 @@ assert connection['HYPRLAND_INSTANCE_SIGNATURE'] != os.environ.get('HYPRLAND_INS
 env = os.environ | connection
 env.update(OMACARDS_BACKEND=str(args.backend.resolve()), XDG_STATE_HOME=str(session_root / 'state'),
            XDG_CONFIG_HOME=str(session_root / 'config'), XDG_CACHE_HOME=str(session_root / 'cache'),
-           XDG_DATA_HOME=str(session_root / 'data'), QT_QPA_PLATFORM='wayland', QT_QUICK_BACKEND='software')
+           XDG_DATA_HOME=str(session_root / 'data'), QT_QPA_PLATFORM='wayland', QT_QUICK_BACKEND='software',
+           # No OmaRelay: its templates must never reach this PC's live desktop helper.
+           OMACARDS_OMARELAY=str(session_root / 'no-omarelay/ovis.py'))
 def ctl(*command):
     result = subprocess.run(['hyprctl', *command], env=env, capture_output=True, text=True, timeout=8)
     if result.returncode or result.stdout.startswith('error') or 'Lua error' in result.stdout:

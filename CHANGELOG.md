@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+- Super+Ctrl+Alt+L lists OmaRelay's card templates for the space in Herdr and
+  applies one after asking. They follow the saved cards under **Templates for**
+  the space, in the same search; choosing one asks "Replace this card with
+  “<name>”?" with **Keep card** focused, and **Replace** closes the panel while
+  OmaRelay applies it and says how it went. OmaRelay is optional: without it, or
+  with one before its library contract 1, the panel is unchanged. OmaCards runs
+  only OmaRelay's `template list` and `template apply` command lines, with ids
+  and a token, and stores and logs nothing of what it answers.
+
 ## 0.2.0-rc.35 — 2026-11-18
 
 - Pin Hyprflip to [`v0.3.0-rc.29`](https://github.com/nocstah/hyprflip/releases/tag/v0.3.0-rc.29)

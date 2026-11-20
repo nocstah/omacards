@@ -1,0 +1,118 @@
+{
+  "ok": true,
+  "protocol": 1,
+  "library": 1,
+  "templates": [
+    {
+      "id": "browser",
+      "name": "Browser ↔ terminals",
+      "builtin": true,
+      "edited": false,
+      "kind": "browser",
+      "place": null,
+      "browser": null,
+      "folder": null,
+      "description": "",
+      "faces": [
+        [
+          "Workspace browser"
+        ],
+        [
+          "Workspace terminal"
+        ]
+      ],
+      "token": "536e1500dbcc216758ffe9d8bf52fccaca0535e38efa057e82498f28fe6df2a0",
+      "default": true
+    },
+    {
+      "id": "terminals",
+      "name": "Terminals ↔ terminals",
+      "builtin": true,
+      "edited": false,
+      "kind": "terminals",
+      "place": null,
+      "browser": null,
+      "folder": null,
+      "description": "",
+      "faces": [
+        [
+          "Workspace terminal"
+        ],
+        [
+          "Workspace terminal"
+        ]
+      ],
+      "token": "b52ea2398bf027cabad5572553733de36ef6d61a2e0965c13f68c08fa626ae3e",
+      "default": false
+    },
+    {
+      "id": "editor",
+      "name": "Zed ↔ terminals",
+      "builtin": true,
+      "edited": false,
+      "kind": "editor",
+      "place": null,
+      "browser": null,
+      "folder": null,
+      "description": "",
+      "faces": [
+        [
+          "Workspace editor"
+        ],
+        [
+          "Workspace terminal"
+        ]
+      ],
+      "token": "d3e9965b75385adbbf5ac6aeddd4aea9a12b3bc35924870aa81e6720639c7c68",
+      "default": false
+    },
+    {
+      "id": "none",
+      "name": "No card",
+      "builtin": true,
+      "edited": false,
+      "kind": "none",
+      "place": null,
+      "browser": null,
+      "folder": null,
+      "description": "",
+      "faces": [],
+      "token": "f4bfc6a1dbf3b2bfd99e5db82a3ce2764951cca65bb7ee1cb1f86c85563d145f",
+      "default": false
+    },
+    {
+      "id": "t0123456789",
+      "name": "Review",
+      "builtin": false,
+      "edited": false,
+      "kind": "browser",
+      "place": null,
+      "browser": null,
+      "folder": null,
+      "description": "Wide reading layout",
+      "faces": [
+        [
+          "Workspace browser",
+          "Obsidian"
+        ],
+        [
+          "Workspace terminal"
+        ]
+      ],
+      "token": "d548d5fe62fbb6fa58ffa7d30593ad4c1795c0dc240740013462dd2effeec951",
+      "default": false
+    }
+  ],
+  "space": {
+    "id": "spQ7xLm2",
+    "label": "omarelay",
+    "live": true,
+    "workspace": null,
+    "template": {
+      "id": "browser",
+      "name": "Browser ↔ terminals",
+      "edited": false,
+      "missing": false
+    }
+  }
+}

@@ -60,6 +60,8 @@ each app controls its own documents, browser tabs and login state.
 - **Edit:** see Front and Back, add apps from this or another workspace, replace
   or remove any pane, move it across sides, reorder panes, and switch between
   beside/stacked layouts. Removed apps remain open.
+- **Templates from OmaRelay:** with OmaRelay installed, the library also lists
+  the card templates of the space in Herdr and applies one after asking.
 - **Saved arrangements:** rename, duplicate, delete, deliberately update the
   saved layout, choose a destination workspace, or reopen missing apps through
   the same Hyprflip workflows.
@@ -327,7 +329,11 @@ message. The runner rejects a live desktop connection, creates a headless
 test output, and tests popup focus, flip/unfold, structured save/edit, motion,
 direct saved-card activation, choosing an app on a hidden face, reordering,
 and Ungroup keeping the apps open. It leaves the session with the saved card
-rebuilt, so it can run again. Rendering uses synthetic fixture data.
+rebuilt, so it can run again. Rendering uses synthetic fixture data, and
+`tests/fake-omarelay.py` answers its template captures from
+`tests/templates/`. `tests/render.py` and the nested runners set
+`OMACARDS_OMARELAY` to a missing path otherwise, so no check reaches this
+computer's OmaRelay.
 
 `python3 tests/navigation-native.py <session.json> --hyprflip <checkout>`
 checks the movement-shortcut offer and Settings switch in such a session. It
@@ -376,3 +382,35 @@ opening it moves it to 3. Current workspace removes the fixed destination.
 No second card database is created; updating a saved arrangement preserves its
 destination. Saved floating mode is restored, while exact screen coordinates
 are chosen by the current desktop layout.
+
+## Templates from OmaRelay
+
+OmaRelay is optional. When it is installed, **Super+Ctrl+Alt+L** (Open saved
+cards) lists, after your saved cards, the card templates of the space in focus
+in Herdr, under **Templates for** the space's name. One search covers both. Each
+template says whether the space uses it, whether it is built in or yours,
+whether new spaces start from it, and the apps on each face. Choosing one asks
+first, because it replaces the space's card and its edits and cannot be undone:
+**Keep card** has the focus, so Enter twice keeps the card. **Replace** closes
+the panel, and OmaRelay's own notification says how it went. If OmaRelay never
+answers, the panel comes back and says to look at the card before trying again.
+Edit templates in Inapse Spaces' settings: **Spaces → Templates**.
+
+OmaCards finds OmaRelay at `$OMACARDS_OMARELAY` when it is set, otherwise at
+`$XDG_DATA_HOME/omarelay/current/scripts/ovis.py` (`~/.local/share/…` without
+`XDG_DATA_HOME`), and runs only these two command lines, the list once each time
+the library opens and the apply after you choose **Replace**:
+
+```sh
+python3 <ovis.py> workspace-browsers cards template list --space here --json
+python3 <ovis.py> workspace-browsers cards template apply <template id> --space <space id> --token <token> --json --notify
+```
+
+The apply carries the ids and the token from that list, never a name. The
+templates are OmaRelay's: OmaCards keeps no copy and stores nothing, so there is
+still no second card database, and it never logs what OmaRelay says, only an
+exit status. Without OmaRelay, or with one that does not offer "library
+contract 1", the section is absent and the panel is as before. Hyprflip's own
+menu, which opens when the Omarchy shell does not answer, has no templates.
+OmaRelay documents the contract in its `docs/workspace-browsers.md`, under
+"Templates in OmaCards".

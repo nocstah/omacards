@@ -53,6 +53,61 @@ FocusScope {
     function stopRecording() { shortcutSettings.recording = false }
     readonly property var savedRows: (snapshotData.saved || []).filter(row => (row.name + " " + row.description).toLowerCase().includes(filter.toLowerCase()))
     readonly property bool hasSavedCards: (snapshotData.saved || []).length > 0
+    // OmaRelay's card templates for the space in Herdr (Service.templates), listed after the saved cards under one
+    // search and one cursor. All of OmaRelay's text goes through Label, as plain text.
+    readonly property var tplAnswer: service ? service.templates : null
+    readonly property var tplSpace: tplAnswer && tplAnswer.space && typeof tplAnswer.space.id === "string" ? tplAnswer.space : null
+    readonly property string tplCode: tplAnswer && typeof tplAnswer.spaceCode === "string" ? tplAnswer.spaceCode : ""
+    // Absent with no answer, or with nothing to apply to.
+    readonly property bool templatesShown: !!tplAnswer && (!!tplSpace || ["", "no_workspace", "herdr_unreachable", "unknown_workspace", "ambiguous_label"].indexOf(tplCode) < 0)
+    readonly property var templateRows: !tplSpace ? [] : tplAnswer.templates
+        .filter(t => !!t && !t.bad && typeof t.name === "string" && Array.isArray(t.faces) && t.faces.every(f => Array.isArray(f))
+                && service.templateArgsValid(t.id, t.token, tplSpace.id))
+        .filter(t => (t.name + " " + t.faces.map(f => f.join(" ")).join(" ") + " " + (t.description || "") + " template").toLowerCase().includes(filter.toLowerCase()))
+    readonly property var libraryRows: savedRows.map(r => ({kind: "saved", row: r})).concat(templateRows.map(t => ({kind: "template", row: t})))
+    readonly property bool hasLibrary: hasSavedCards || (!!tplSpace && tplAnswer.templates.some(t => !!t && !t.bad))
+    // {id, token, name, spaceId, spaceLabel, here} while Replace waits for an answer.
+    property var templateConfirm: null
+    readonly property var templateApplying: service ? service.templateApplying : null
+    // The one line under the templates heading, if any (an apply in flight replaces the others).
+    readonly property string templateState: {
+        if (!templatesShown) return ""
+        if (templateApplying) return "Applying “" + templateApplying.name + "” to " + templateApplying.label + "…"
+        if (tplSpace) {
+            const label = tplSpace.label
+            if (tplSpace.live === true)
+                return service.context && tplSpace.workspace === service.context.workspace ? ""
+                    : label + " is open in Herdr away from this workspace. A template you pick applies to its card there."
+            if (tplCode === "cards_off") return "Card mode is off. A template you pick applies when card mode is on and " + label + " is next shown."
+            if (tplCode === "helper_unavailable") return "OmaRelay's desktop helper is not running. A template you pick applies when " + label + " is next shown."
+            if (tplCode === "helper_timeout") return "OmaRelay's desktop helper is busy. A template you pick applies when it can."
+            return ""
+        }
+        if (tplCode === "helper_too_old") return ""
+        if (tplCode === "other_machine") return "The space in Herdr belongs to another machine. Change its card there."
+        return /^[a-z_]{1,40}$/.test(tplCode) ? "Templates can't be applied right now (" + tplCode + ")." : "Templates can't be applied right now."
+    }
+    // Tags, faces and description, as Hyprflip's saved cards describe faces.
+    function templateDetail(t) {
+        const used = !!tplSpace && !!tplSpace.template && tplSpace.template.missing !== true && t.id === tplSpace.template.id
+        const tags = ["Template"]
+        if (used) tags.push("In use")
+        if (used && tplSpace.template.edited === true) tags.push("Changed since")
+        tags.push(t.builtin ? (t.edited ? "Built-in, edited" : "Built-in") : "Yours")
+        if (t.default === true) tags.push("New spaces")
+        const faces = t.kind === "none" ? "Herdr alone, no card" : t.faces.map(f => f.join(" + ")).join(" ↔ ")
+        return [tags.join(" · "), faces].concat(typeof t.description === "string" && t.description ? [t.description] : []).join("\n")
+    }
+    // Replacing a space's card has no undo, so it asks once, with Keep card focused.
+    function askTemplate(t) {
+        if (!service || templateApplying || !tplSpace || !t) return
+        templateConfirm = {id: t.id, token: t.token, name: t.name, spaceId: tplSpace.id, spaceLabel: tplSpace.label,
+                           here: tplSpace.live === true && tplSpace.workspace !== null && !!service.context && tplSpace.workspace === service.context.workspace}
+        Qt.callLater(() => keepTemplate.forceActiveFocus())
+    }
+    function libraryRow(index) {
+        return index < savedRows.length ? savedRepeater.itemAt(index) : templateRepeater.itemAt(index - savedRows.length)
+    }
     readonly property bool hasFrontApp: !!(service && service.context && service.context.anchor)
     readonly property string frontAppName: hasFrontApp ? (service.context.anchor_label || "Selected app") : ""
     readonly property string progressTitle: !service ? ""
@@ -80,6 +135,7 @@ FocusScope {
     }
     function back() {
         if (question) service.cancel()
+        else if (templateConfirm) { templateConfirm = null; search.forceActiveFocus() }
         else if (confirmUngroup) { ungroupKey = ""; ungroupButton.forceActiveFocus() }
         else if (page === "motion" || page === "shortcuts") { service.page = "settings"; focusEntry() }
         else if (page !== "cards") { service.page = "cards"; paneAddress = ""; focusEntry() }
@@ -240,7 +296,18 @@ FocusScope {
         else if (y + item.height > scroller.contentY + scroller.height) scroller.contentY = y + item.height - scroller.height
     }
     onChoiceCursorChanged: showItem(choiceRepeater.itemAt(choiceCursor))
-    onCursorChanged: showItem(savedRepeater.itemAt(cursor))
+    onCursorChanged: showItem(libraryRow(cursor))
+    // A new answer (a reopen, or an apply that ended) ends a confirmation it was not given for. An answer that brings
+    // the search field takes focus only from the key catcher, never from a control the person moved to.
+    onTplAnswerChanged: {
+        if (templateConfirm) {
+            const inConfirm = !!root.Window.activeFocusItem && [keepTemplate, replaceTemplate].indexOf(root.Window.activeFocusItem) >= 0
+            templateConfirm = null
+            if (inConfirm) Qt.callLater(() => search.visible ? search.forceActiveFocus() : root.focusEntry())
+        }
+        if (cursor >= libraryRows.length) cursor = Math.max(0, libraryRows.length - 1)
+        Qt.callLater(() => { if (root.Window.activeFocusItem === keys && search.visible && root.page === "cards" && root.pageVisible) root.focusEntry() })
+    }
     onConfirmUngroupChanged: if (confirmUngroup) Qt.callLater(() => keepCard.forceActiveFocus())
     Keys.onEscapePressed: back()
     // While someone types or records a shortcut, the pointer never takes focus.
@@ -265,7 +332,7 @@ FocusScope {
             scroller.contentY = 0
             Qt.callLater(root.focusEntry)
         }
-        function onPageChanged() { root.ungroupKey = ""; scroller.contentY = 0; Qt.callLater(root.focusEntry) }
+        function onPageChanged() { root.ungroupKey = ""; root.templateConfirm = null; scroller.contentY = 0; Qt.callLater(root.focusEntry) }
         function onSnapshotChanged() { Qt.callLater(root.recoverFocus) }
         function onBusyChanged() { Qt.callLater(root.recoverFocus) }
         function onCurrentCardChanged() {
@@ -559,22 +626,29 @@ FocusScope {
                         id: savedLibrary
                         Layout.fillWidth: true
                         spacing: Style.space(8)
-                        visible: root.hasSavedCards || root.card !== null || !!root.snapshotData.library_error
+                        visible: root.hasLibrary || root.card !== null || !!root.snapshotData.library_error || root.templatesShown
                         Label { text: "Saved cards"; font.bold: true }
                         Notice { Layout.fillWidth: true; text: root.snapshotData.library_error || ""; error: true }
                         KeyField {
                             id: search
+                            objectName: "librarySearch"
                             Layout.fillWidth: true
-                            visible: root.hasSavedCards
-                            placeholderText: "Search saved cards…"
-                            Accessible.name: "Search saved cards"
+                            visible: root.hasLibrary
+                            placeholderText: root.templatesShown && !!root.tplSpace ? "Search saved cards and templates…" : "Search saved cards…"
+                            Accessible.name: root.templatesShown && !!root.tplSpace ? "Search saved cards and templates" : "Search saved cards"
                             text: root.filter
                             onTextEdited: { root.filter = text; root.cursor = 0 }
                             Keys.onUpPressed: root.cursor = Math.max(0, root.cursor - 1)
-                            Keys.onDownPressed: root.cursor = Math.min(root.savedRows.length - 1, root.cursor + 1)
+                            // One cursor walks the saved cards, then the templates.
+                            Keys.onDownPressed: root.cursor = Math.min(root.libraryRows.length - 1, root.cursor + 1)
                             // Escape clears a search before it closes anything.
                             Keys.onEscapePressed: event => { if (text.length > 0) { root.filter = ""; root.cursor = 0 } else event.accepted = false }
-                            onAccepted: if (root.savedRows[root.cursor]) root.service.savedAction("open", root.savedRows[root.cursor])
+                            onAccepted: {
+                                const r = root.libraryRows[root.cursor]
+                                if (!r) return
+                                if (r.kind === "saved") root.service.savedAction("open", r.row)
+                                else root.askTemplate(r.row)
+                            }
                         }
                         ColumnLayout {
                             Layout.fillWidth: true
@@ -602,8 +676,110 @@ FocusScope {
                         }
                         Label {
                             Layout.fillWidth: true
-                            text: root.filter ? "No saved cards match your search. Escape clears it." : "Save a card to reopen its apps and layout later."
-                            visible: root.savedRows.length === 0 && !root.snapshotData.library_error
+                            text: !root.filter ? "Save a card to reopen its apps and layout later."
+                                : root.templatesShown && !!root.tplSpace ? "Nothing matches your search. Escape clears it."
+                                : "No saved cards match your search. Escape clears it."
+                            // A search that finds only templates says nothing here.
+                            visible: root.savedRows.length === 0 && !root.snapshotData.library_error && !(root.filter && root.templateRows.length > 0)
+                        }
+                        // OmaRelay's templates: a search that matches none of them leaves the group out.
+                        ColumnLayout {
+                            objectName: "templateGroup"
+                            Layout.fillWidth: true
+                            Layout.topMargin: Style.space(6)
+                            spacing: Style.space(8)
+                            visible: root.templatesShown && !(root.filter && !!root.tplSpace && root.templateRows.length === 0 && !root.templateConfirm)
+                            Label {
+                                objectName: "templateHeading"
+                                Layout.fillWidth: true
+                                text: root.tplSpace ? "Templates for " + root.tplSpace.label : "Templates"
+                                font.bold: true
+                            }
+                            Notice {
+                                objectName: "templateNotice"
+                                Layout.fillWidth: true
+                                error: true
+                                text: !root.tplSpace && root.tplCode === "helper_too_old" && !root.templateApplying && !root.templateConfirm
+                                    ? "OmaRelay's desktop helper is older than OmaRelay. Restart it to apply templates." : ""
+                            }
+                            Label {
+                                objectName: "templateState"
+                                Layout.fillWidth: true
+                                text: root.templateState
+                                visible: text !== "" && !root.templateConfirm
+                            }
+                            Label {
+                                objectName: "templateUnreadable"
+                                Layout.fillWidth: true
+                                text: "Your own templates could not be read. The built-in ones still work."
+                                visible: !!root.tplSpace && root.tplAnswer.unreadable === true && !root.templateApplying && !root.templateConfirm
+                            }
+                            Label {
+                                objectName: "templateMissing"
+                                Layout.fillWidth: true
+                                text: root.tplSpace ? root.tplSpace.label + "'s template was deleted. Its card builds from the built-in one." : ""
+                                visible: !!root.tplSpace && !!root.tplSpace.template && root.tplSpace.template.missing === true && !root.templateApplying && !root.templateConfirm
+                            }
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                spacing: Style.space(2)
+                                visible: !root.templateConfirm
+                                Repeater {
+                                    id: templateRepeater
+                                    model: root.templateRows
+                                    RowLayout {
+                                        required property var modelData
+                                        required property int index
+                                        Layout.fillWidth: true
+                                        spacing: Style.space(6)
+                                        ChoiceRow {
+                                            Layout.fillWidth: true
+                                            title: modelData.name
+                                            detail: root.templateDetail(modelData)
+                                            enabled: !root.templateApplying
+                                            Accessible.description: enabled ? "" : "OmaRelay is applying a template"
+                                            selected: search.activeFocus && root.cursor === root.savedRows.length + index
+                                            pointerGate: gate
+                                            onPointed: if (search.activeFocus) root.cursor = root.savedRows.length + index
+                                            onActivated: root.askTemplate(modelData)
+                                        }
+                                    }
+                                }
+                            }
+                            Label {
+                                Layout.fillWidth: true
+                                text: "Edit templates in Inapse Spaces' settings: Spaces → Templates."
+                                font.pixelSize: Style.font.bodySmall
+                                visible: root.templateRows.length > 0 && !root.templateConfirm
+                            }
+                            // Replacing a space's card asks once, in place, as Ungroup does.
+                            ColumnLayout {
+                                objectName: "templateConfirm"
+                                visible: !!root.templateConfirm
+                                Layout.fillWidth: true
+                                spacing: Style.space(6)
+                                Label {
+                                    Layout.fillWidth: true
+                                    font.bold: true
+                                    text: !root.templateConfirm ? ""
+                                        : root.templateConfirm.here ? "Replace this card with “" + root.templateConfirm.name + "”?"
+                                        : "Replace " + root.templateConfirm.spaceLabel + "'s card with “" + root.templateConfirm.name + "”?"
+                                }
+                                Label { Layout.fillWidth: true; text: "Save it as a template first to keep it." }
+                                Flow {
+                                    Layout.fillWidth: true
+                                    spacing: Style.space(6)
+                                    Action {
+                                        id: replaceTemplate
+                                        text: "Replace"
+                                        accessibleName: !root.templateConfirm ? "Replace"
+                                            : root.templateConfirm.here ? "Replace this card with “" + root.templateConfirm.name + "”"
+                                            : "Replace " + root.templateConfirm.spaceLabel + "'s card with “" + root.templateConfirm.name + "”"
+                                        onClicked: { const c = root.templateConfirm; root.templateConfirm = null; root.service.applyTemplate(c) }
+                                    }
+                                    Action { id: keepTemplate; text: "Keep card"; onClicked: { root.templateConfirm = null; search.forceActiveFocus() } }
+                                }
+                            }
                         }
                     }
                     Ui.PanelSeparator { Layout.fillWidth: true; visible: root.card === null && savedLibrary.visible }

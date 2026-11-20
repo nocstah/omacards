@@ -213,7 +213,13 @@ Persistent selection uses `current`; pointer hover or actual focus uses
 arrow navigation moves actual row focus and synchronizes `choiceCursor`, so
 the highlighted row and activated answer agree. In the saved library, focus
 stays in search while arrows change its selected result; Enter performs that
-result's stated open/go-to action.
+result's stated open/go-to action. One cursor walks the saved cards, then
+OmaRelay's templates for the space in Herdr, under their own bold heading
+("Templates for <space>"). Template rows have no Manage action: their detail
+lists the tags (Template, In use, Changed since, Built-in or Yours, New spaces),
+the faces with the same " ↔ " and " + " as saved cards, and a description.
+Everything OmaRelay supplies, names and labels included, is shown through
+`Label`, as plain text.
 
 Choice rows take the host CursorSurface contract: the highlight follows focus
 only. Real pointer movement, filtered by the panel's `Ui.PointerMoveGate`,
@@ -314,7 +320,7 @@ itself reach one panel-wide handler:
 | Right/Left, l/h | Move to the neighbour in the same row (a row's Preview or Manage action). Inside a button group they choose its value instead. |
 | Tab, Shift+Tab | Every control in reading order, wrapping within the panel. Host panels use Tab to switch panels; OmaCards has too many controls for that, and its bar button stays one click away. |
 | Enter, Space | Activate the focused control. |
-| Escape | Clear a search, cancel a question or an Ungroup confirmation, go back a page, then close. |
+| Escape | Clear a search, cancel a question, an Ungroup confirmation or a template's Replace confirmation, go back a page, then close. |
 | Ctrl+Up/Down, Ctrl+k/j | In Edit, move the selected app earlier or later. |
 | Delete, x | In Edit, remove the selected app whose row has focus. |
 
@@ -346,6 +352,18 @@ Creation explains that apps resize to fit automatically; selecting a floating
 app does not introduce a separate confirmation about tiling.
 Capability-dependent controls and nearby explanations make unavailable
 editing understandable without changing the surface's visual system.
+
+A destructive choice asks once, in place, as Ungroup does: a bold question, one
+plain line, then the action and **Keep card**, with focus starting on Keep card
+so Enter twice never destroys anything. Picking a template asks "Replace this
+card with “<name>”?" (or names the space when its card is elsewhere), and
+Replace closes the panel; OmaRelay's own notification reports the result. The
+templates heading carries at most one plain line saying why a template applies
+later or not at all (card mode off, OmaRelay's helper not running, busy or on
+another machine, or "Applying “<name>” to <space>…" while an apply runs, with
+the rows disabled). A helper older than OmaRelay is the one error, in a Notice.
+With no answer from OmaRelay, the panel comes back with a Notice that says to
+look at the card before trying again.
 
 ## Do's and Don'ts
 

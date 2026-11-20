@@ -16,6 +16,12 @@ containers. Live edits never silently overwrite saved definitions. Removing an
 app from a card keeps the app open. Open saved cards directly, asking only when
 an app or launcher is ambiguous.
 
+Hyprflip owns saved definitions. Card templates are OmaRelay's: the library
+lists the ones for the space in Herdr after the saved cards, and applies one
+through OmaRelay. Picking a template is the one exception to opening directly:
+it asks once, because it replaces a space's card and its edits with no undo.
+Without OmaRelay the library is as it was.
+
 Card actions have explicit targets. Looking at a hidden face does not turn it;
 Show and edit explicitly activates it. Cancel should leave opened apps usable.
 Motion preferences apply to all cards and honor Hyprland's animation setting.

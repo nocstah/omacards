@@ -2,7 +2,7 @@ import json,os,sys,subprocess,tempfile,time,shutil
 from pathlib import Path
 project=Path(__file__).resolve().parents[1]
 connection=json.loads(Path(sys.argv[1]).read_text());assert connection['HYPRLAND_INSTANCE_SIGNATURE']!=os.environ.get('HYPRLAND_INSTANCE_SIGNATURE') and Path(connection['XDG_RUNTIME_DIR']).is_relative_to('/tmp')
-env=os.environ|connection|{'QT_QPA_PLATFORM':'wayland','QT_QPA_PLATFORMTHEME':'','QT_QUICK_BACKEND':'software','OMACARDS_FIXTURE':str(project/'tests/fixture.json')}
+env=os.environ|connection|{'QT_QPA_PLATFORM':'wayland','QT_QPA_PLATFORMTHEME':'','QT_QUICK_BACKEND':'software','OMACARDS_FIXTURE':str(project/'tests/fixture.json'),'OMACARDS_OMARELAY':str(Path(connection['XDG_RUNTIME_DIR'])/'no-omarelay/ovis.py')}
 def ctl(*args):
  p=subprocess.run(['hyprctl',*args],env=env,text=True,capture_output=True,timeout=8);assert p.returncode==0,p.stderr;return p.stdout.strip()
 ctl('eval','hl.config({input={resolve_binds_by_sym=true},plugin={hyprflip={duration_ms=139}}});hl.bind("SUPER + CTRL + ALT + F10",function() hl.config({plugin={hyprflip={duration_ms=137}}}) end,{description="Capture test counter"})')
